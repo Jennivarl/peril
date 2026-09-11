@@ -16,14 +16,33 @@ def _int(text: str) -> int:
         raise ValueError('not a number: ' + repr(text))
     return int(text)
 
+def _offset_seconds(zone: str, stamp: str) -> int:
+    if zone == 'Z':
+        return 0
+    if len(zone) != 6 or zone[0] not in '+-' or zone[3] != ':':
+        raise ValueError('unrecognised time zone in: ' + repr(stamp))
+    hours = _int(zone[1:3])
+    minutes = _int(zone[4:6])
+    if hours > 14 or minutes > 59:
+        raise ValueError('time zone out of range: ' + repr(stamp))
+    sign = 1 if zone[0] == '+' else -1
+    return sign * (hours * 3600 + minutes * 60)
+
 def parse_iso(stamp: str) -> int:
     s = (stamp or '').strip()
     if len(s) < _ISO_MIN or s[4] != '-' or s[7] != '-' or (s[10] != 'T'):
-        raise ValueError('not an ISO-8601 UTC timestamp: ' + repr(stamp))
-    if not s.endswith('Z'):
-        raise ValueError('only UTC timestamps ending in Z are accepted: ' + repr(stamp))
+        raise ValueError('not an ISO-8601 timestamp: ' + repr(stamp))
     if s[13] != ':' or s[16] != ':':
         raise ValueError('malformed time component: ' + repr(stamp))
+    rest = s[19:]
+    if rest.startswith('.'):
+        digits = 1
+        while digits < len(rest) and rest[digits].isdigit():
+            digits += 1
+        if digits == 1:
+            raise ValueError('empty fractional seconds in: ' + repr(stamp))
+        rest = rest[digits:]
+    offset = _offset_seconds(rest, stamp)
     year = _int(s[0:4])
     month = _int(s[5:7])
     day = _int(s[8:10])
@@ -34,7 +53,8 @@ def parse_iso(stamp: str) -> int:
         raise ValueError('date out of range: ' + repr(stamp))
     if hour > 23 or minute > 59 or second > 60:
         raise ValueError('time out of range: ' + repr(stamp))
-    return _days_from_civil(year, month, day) * 86400 + hour * 3600 + minute * 60 + second
+    local = _days_from_civil(year, month, day) * 86400 + hour * 3600 + minute * 60 + second
+    return local - offset
 
 def parse_date(day: str) -> int:
     s = (day or '').strip()
@@ -50,8 +70,10 @@ def outage_minutes(created_at: str, resolved_at: str) -> int:
     return (end - start) // 60
 PAYS = 'pays'
 UNDER_THRESHOLD = 'under_threshold'
+NOT_SERIOUS = 'not_serious'
 OUTSIDE_WINDOW = 'outside_window'
 UNRESOLVED = 'unresolved'
+SERIOUS = ('major', 'critical')
 
 class Assessment:
 
@@ -64,98 +86,154 @@ class Assessment:
     def pays(self) -> bool:
         return self.outcome == PAYS
 
-def assess(created_at: str, resolved_at: str, window_start: str, window_end: str, threshold_minutes: int) -> Assessment:
+def assess(created_at: str, resolved_at: str, impact: str, window_start: str, window_end: str, threshold_minutes: int) -> Assessment:
     if not (resolved_at or '').strip():
         return Assessment(UNRESOLVED, 0, 'the incident is still open, so it has no final duration to measure')
     minutes = outage_minutes(created_at, resolved_at)
     began = parse_iso(created_at)
     if began < parse_date(window_start) or began >= parse_date(window_end):
         return Assessment(OUTSIDE_WINDOW, minutes, 'the incident began outside the covered window')
+    rated = (impact or '').strip().lower()
+    if rated not in SERIOUS:
+        return Assessment(NOT_SERIOUS, minutes, f"the provider rated it {rated or 'unrated'}, not major or critical")
     if minutes < threshold_minutes:
         return Assessment(UNDER_THRESHOLD, minutes, f'{minutes} minutes is under the {threshold_minutes} minute threshold')
     return Assessment(PAYS, minutes, f'{minutes} minutes meets the {threshold_minutes} minute threshold')
 from dataclasses import dataclass
 from genlayer import *
-_PAYOUT_MULTIPLE = 10
-_MIN_THRESHOLD = 15
-_MAX_THRESHOLD = 1440
+_COVERS = {'github': ('www.githubstatus.com', {240: 2, 480: 3, 720: 6, 1440: 8}), 'discord': ('discordstatus.com', {120: 2, 240: 5, 480: 8, 720: 8, 1440: 8}), 'vercel': ('www.vercel-status.com', {120: 2, 240: 3, 480: 5, 720: 5, 1440: 6}), 'netlify': ('www.netlifystatus.com', {60: 2, 120: 2, 240: 4, 480: 4, 720: 4, 1440: 6}), 'npm': ('status.npmjs.org', {60: 6, 120: 8, 240: 8, 480: 8, 720: 8, 1440: 8})}
+_DAY = 86400
+_MAX_WINDOW_DAYS = 7
+_MAX_LEAD_DAYS = 30
 STATE_OPEN = 'open'
 STATE_PAID = 'paid'
 STATE_CLOSED = 'closed'
+_BLANK = {'id': '', 'created_at': '', 'resolved_at': '', 'impact': ''}
 
-def _times_from_incident(body: str) -> dict:
+def _fields_from_incident(body: str) -> dict:
     import json
-    data = json.loads(body)
-    incident = data.get('incident') or {}
-    return {'id': str(incident.get('id') or ''), 'created_at': str(incident.get('created_at') or ''), 'resolved_at': str(incident.get('resolved_at') or '')}
+    try:
+        data = json.loads(body)
+    except Exception:
+        return dict(_BLANK)
+    incident = data.get('incident') if isinstance(data, dict) else None
+    if not isinstance(incident, dict):
+        return dict(_BLANK)
+    return {'id': str(incident.get('id') or ''), 'created_at': str(incident.get('created_at') or ''), 'resolved_at': str(incident.get('resolved_at') or ''), 'impact': str(incident.get('impact') or '')}
+
+def _read_incident(url: str) -> dict:
+    page = ''
+    try:
+        resp = gl.nondet.web.get(url)
+        if resp.status < 400:
+            page = (resp.body or b'').decode('utf-8', errors='replace')
+    except Exception:
+        page = ''
+    if not page.strip():
+        return dict(_BLANK)
+    return _fields_from_incident(page)
 
 @allow_storage
 @dataclass
 class Policy:
+    cover: str
     host: str
     window_start: str
     window_end: str
     threshold_minutes: u256
+    multiple: u256
     premium: u256
     payout: u256
     holder: Address
     state: str
     incident_id: str
+    impact: str
     outcome: str
     minutes: u256
     reason: str
 
 class Peril(gl.Contract):
-    covers: TreeMap[str, str]
     policies: TreeMap[str, Policy]
     ids: DynArray[str]
     locked: u256
     pool: u256
+    shares: TreeMap[str, u256]
+    total_shares: u256
 
     def __init__(self):
-        self.covers['cloudflare'] = 'www.cloudflarestatus.com'
-        self.covers['github'] = 'www.githubstatus.com'
-        self.covers['openai'] = 'status.openai.com'
-        self.covers['discord'] = 'discordstatus.com'
-        self.covers['vercel'] = 'www.vercel-status.com'
-        self.covers['netlify'] = 'www.netlifystatus.com'
-        self.covers['npm'] = 'status.npmjs.org'
         self.locked = u256(0)
         self.pool = u256(0)
+        self.total_shares = u256(0)
 
     @gl.public.write.payable
     def fund(self) -> dict:
         amount = gl.message.value
         if amount <= 0:
             raise gl.vm.UserError('send value with this call')
+        minted = amount * (self.total_shares + 1) // (self.pool + 1)
+        if minted <= 0:
+            raise gl.vm.UserError('too small to buy a share of this pool')
+        key = gl.message.sender_address.as_hex.lower()
+        self.shares[key] = u256(self.shares.get(key, u256(0)) + minted)
+        self.total_shares = u256(self.total_shares + minted)
         self.pool = u256(self.pool + amount)
-        return {'pool': str(self.pool), 'locked': str(self.locked)}
+        return {'minted': str(minted), **self.reserves()}
+
+    @gl.public.write
+    def withdraw(self, shares: int) -> dict:
+        n = int(shares)
+        key = gl.message.sender_address.as_hex.lower()
+        held = int(self.shares.get(key, u256(0)))
+        if n <= 0 or n > held:
+            raise gl.vm.UserError(f'you hold {held} shares')
+        if n == int(self.total_shares) and self.locked > 0:
+            raise gl.vm.UserError('the last shares can leave once no cover is open')
+        value = n * (self.pool - self.locked) // self.total_shares
+        if value <= 0:
+            raise gl.vm.UserError('those shares redeem for nothing right now')
+        self.shares[key] = u256(held - n)
+        self.total_shares = u256(self.total_shares - n)
+        self.pool = u256(self.pool - value)
+        _pay(gl.message.sender_address, value)
+        return {'redeemed': str(value), **self.reserves()}
 
     @gl.public.write.payable
     def buy(self, policy_id: str, cover: str, window_start: str, window_end: str, threshold_minutes: int) -> dict:
         key = policy_id.strip().lower()
+        if not key:
+            raise gl.vm.UserError('name the policy')
         if key in self.policies:
             raise gl.vm.UserError(f'policy already exists: {key}')
         name = cover.strip().lower()
-        if name not in self.covers:
+        if name not in _COVERS:
             raise gl.vm.UserError('not a covered service; call covered() for the list')
+        host, prices = _COVERS[name]
         threshold = int(threshold_minutes)
-        if threshold < _MIN_THRESHOLD or threshold > _MAX_THRESHOLD:
-            raise gl.vm.UserError(f'threshold must be between {_MIN_THRESHOLD} and {_MAX_THRESHOLD} minutes')
+        if threshold not in prices:
+            offered = ', '.join((str(t) for t in sorted(prices)))
+            raise gl.vm.UserError(f'{name} is sold at thresholds of {offered} minutes')
+        multiple = prices[threshold]
         start = parse_date(window_start)
         end = parse_date(window_end)
+        today = _today()
+        if start <= today:
+            raise gl.vm.UserError('cover starts tomorrow at the earliest, so a known outage cannot be insured')
+        if start > today + _MAX_LEAD_DAYS * _DAY:
+            raise gl.vm.UserError(f'cover can be bought at most {_MAX_LEAD_DAYS} days ahead')
         if end <= start:
             raise gl.vm.UserError('the window must end after it starts')
+        if end - start > _MAX_WINDOW_DAYS * _DAY:
+            raise gl.vm.UserError(f'a window is at most {_MAX_WINDOW_DAYS} days')
         premium = gl.message.value
         if premium <= 0:
             raise gl.vm.UserError('send the premium with this call')
-        payout = u256(premium * _PAYOUT_MULTIPLE)
+        payout = u256(premium * multiple)
         pool_after = u256(self.pool + premium)
         if pool_after - self.locked < payout:
             raise gl.vm.UserError('the pool cannot cover this payout; fund it or buy less')
         self.pool = pool_after
         self.locked = u256(self.locked + payout)
-        deal = Policy(host=self.covers[name], window_start=window_start.strip(), window_end=window_end.strip(), threshold_minutes=u256(threshold), premium=premium, payout=payout, holder=gl.message.sender_address, state=STATE_OPEN, incident_id='', outcome='', minutes=u256(0), reason='')
+        deal = Policy(cover=name, host=host, window_start=window_start.strip(), window_end=window_end.strip(), threshold_minutes=u256(threshold), multiple=u256(multiple), premium=premium, payout=payout, holder=gl.message.sender_address, state=STATE_OPEN, incident_id='', impact='', outcome='', minutes=u256(0), reason='')
         self.policies[key] = deal
         self.ids.append(key)
         return _as_dict(key, deal)
@@ -172,42 +250,28 @@ class Peril(gl.Contract):
         url = 'https://' + deal.host + '/api/v2/incidents/' + ref + '.json'
 
         def leader_fn():
-            page = ''
-            try:
-                resp = gl.nondet.web.get(url)
-                if resp.status < 400:
-                    page = (resp.body or b'').decode('utf-8', errors='replace')
-            except Exception:
-                page = ''
-            if not page.strip():
-                return {'id': '', 'created_at': '', 'resolved_at': ''}
-            return _times_from_incident(page)
+            return _read_incident(url)
 
         def validator_fn(leaders_res) -> bool:
             if not isinstance(leaders_res, gl.vm.Return):
                 return False
             leader = leaders_res.calldata
-            page = ''
-            try:
-                resp = gl.nondet.web.get(url)
-                if resp.status < 400:
-                    page = (resp.body or b'').decode('utf-8', errors='replace')
-            except Exception:
-                page = ''
-            if not page.strip():
+            mine = _read_incident(url)
+            if not mine['created_at']:
                 return str(leader['created_at']) == ''
-            mine = _times_from_incident(page)
-            return str(leader['id']) == mine['id'] and str(leader['created_at']) == mine['created_at'] and (str(leader['resolved_at']) == mine['resolved_at'])
+            return all((str(leader[f]) == mine[f] for f in _BLANK))
         found = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
         created = str(found['created_at'])
         resolved = str(found['resolved_at'])
+        impact = str(found['impact'])
         returned_id = str(found['id'])
         if not created:
             raise gl.vm.UserError('that incident could not be read from ' + deal.host)
         if returned_id != ref:
             raise gl.vm.UserError('the record returned is not the incident that was requested')
-        verdict = assess(created, resolved, deal.window_start, deal.window_end, int(deal.threshold_minutes))
+        verdict = assess(created, resolved, impact, deal.window_start, deal.window_end, int(deal.threshold_minutes))
         deal.incident_id = ref
+        deal.impact = impact
         deal.outcome = verdict.outcome
         deal.minutes = u256(verdict.minutes)
         deal.reason = verdict.reason
@@ -216,7 +280,7 @@ class Peril(gl.Contract):
             self.locked = u256(self.locked - deal.payout)
             self.pool = u256(self.pool - deal.payout)
             self.policies[key] = deal
-            gl.get_contract_at(deal.holder).emit_transfer(value=deal.payout)
+            _pay(deal.holder, deal.payout)
         else:
             self.policies[key] = deal
         return _as_dict(key, deal)
@@ -227,7 +291,7 @@ class Peril(gl.Contract):
         deal = self.policies[key]
         if deal.state != STATE_OPEN:
             raise gl.vm.UserError(f'policy is already {deal.state}: {key}')
-        if not _window_has_passed(deal.window_end):
+        if _today() < parse_date(deal.window_end):
             raise gl.vm.UserError('the covered window has not closed yet')
         deal.state = STATE_CLOSED
         if not deal.reason:
@@ -251,17 +315,42 @@ class Peril(gl.Contract):
 
     @gl.public.view
     def covered(self) -> list:
-        return [f'{name}:{host}' for name, host in self.covers.items()]
+        return [{'cover': name, 'host': host, 'serious': list(SERIOUS), 'max_window_days': _MAX_WINDOW_DAYS, 'multiples': {str(t): m for t, m in sorted(prices.items())}} for name, (host, prices) in sorted(_COVERS.items())]
 
     @gl.public.view
     def reserves(self) -> dict:
-        return {'pool': str(self.pool), 'locked': str(self.locked), 'free': str(self.pool - self.locked), 'multiple': str(_PAYOUT_MULTIPLE)}
+        return {'pool': str(self.pool), 'locked': str(self.locked), 'free': str(self.pool - self.locked), 'total_shares': str(self.total_shares)}
 
-def _window_has_passed(window_end: str) -> bool:
+    @gl.public.view
+    def shares_of(self, holder: str) -> dict:
+        key = _hex(holder)
+        held = int(self.shares.get(key, u256(0)))
+        total = int(self.total_shares)
+        value = held * int(self.pool - self.locked) // total if total else 0
+        return {'shares': str(held), 'redeemable': str(value)}
+
+def _today() -> int:
     stamp = str(gl.message_raw['datetime'])
     if len(stamp) < 10:
         raise gl.vm.UserError('the transaction carried no usable date')
-    return parse_date(stamp[:10]) >= parse_date(window_end)
+    return parse_date(stamp[:10])
+
+def _hex(address) -> str:
+    if hasattr(address, 'as_hex'):
+        return address.as_hex.lower()
+    return str(address).strip().lower()
+
+@gl.evm.contract_interface
+class _Wallet:
+
+    class View:
+        pass
+
+    class Write:
+        pass
+
+def _pay(to: Address, amount: int) -> None:
+    _Wallet(to).emit_transfer(value=u256(amount))
 
 def _as_dict(key: str, deal: Policy) -> dict:
-    return {'policy_id': key, 'host': deal.host, 'window_start': deal.window_start, 'window_end': deal.window_end, 'threshold_minutes': deal.threshold_minutes, 'premium': str(deal.premium), 'payout': str(deal.payout), 'holder': deal.holder.as_hex, 'state': deal.state, 'incident_id': deal.incident_id, 'outcome': deal.outcome, 'minutes': deal.minutes, 'reason': deal.reason}
+    return {'policy_id': key, 'cover': deal.cover, 'host': deal.host, 'window_start': deal.window_start, 'window_end': deal.window_end, 'threshold_minutes': deal.threshold_minutes, 'multiple': deal.multiple, 'premium': str(deal.premium), 'payout': str(deal.payout), 'holder': deal.holder.as_hex, 'state': deal.state, 'incident_id': deal.incident_id, 'impact': deal.impact, 'outcome': deal.outcome, 'minutes': deal.minutes, 'reason': deal.reason}

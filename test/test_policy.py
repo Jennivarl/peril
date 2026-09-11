@@ -13,6 +13,7 @@ status API on 2026-09-08 and anyone can look them up.
 import pytest
 
 from contracts.policy import (
+    NOT_SERIOUS,
     OUTSIDE_WINDOW,
     PAYS,
     UNDER_THRESHOLD,
@@ -90,7 +91,11 @@ def test_a_leap_second_is_accepted():
         "",
         "not a date",
         "2026-09-07",
-        "2026-09-07T14:25:18+02:00",
+        "2026-09-07T14:25:18",
+        "2026-09-07T14:25:18+2:00",
+        "2026-09-07T14:25:18+15:00",
+        "2026-09-07T14:25:18.Z",
+        "2026-09-07T14:25:18Zjunk",
         "2026-09-07 14:25:18Z",
         "2026-13-07T14:25:18Z",
         "2026-09-07T25:25:18Z",
@@ -104,6 +109,20 @@ def test_refuses_anything_it_does_not_recognise(bad):
     """
     with pytest.raises(ValueError):
         parse_iso(bad)
+
+
+def test_offsets_are_converted_to_utc():
+    """Discord's page writes 2026-09-10T21:21:35.751-07:00; that is 04:21 UTC."""
+    assert parse_iso("2026-09-10T21:21:35.751-07:00") == parse_iso("2026-09-11T04:21:35Z")
+    assert parse_iso("2026-09-11T06:21:35+02:00") == parse_iso("2026-09-11T04:21:35Z")
+    assert parse_iso("2026-09-11T04:21:35+00:00") == parse_iso("2026-09-11T04:21:35Z")
+
+
+def test_a_real_discord_outage_measures_the_same_as_in_utc():
+    # discordstatus.com/api/v2/incidents/d82z44sn4fpx.json
+    assert outage_minutes(
+        "2026-09-10T21:21:35.751-07:00", "2026-09-10T23:42:28.928-07:00"
+    ) == 140
 
 
 def test_parse_date_is_midnight_utc():
@@ -143,8 +162,8 @@ def test_duration_spanning_midnight_and_a_month_boundary():
 # --------------------------------------------------------------------
 
 
-def w(created, resolved, threshold=60, start="2026-09-01", end="2026-10-01"):
-    return assess(created, resolved, start, end, threshold)
+def w(created, resolved, threshold=60, start="2026-09-01", end="2026-10-01", impact="major"):
+    return assess(created, resolved, impact, start, end, threshold)
 
 
 def test_a_long_outage_pays():
@@ -212,6 +231,28 @@ def test_membership_is_decided_by_when_it_started_not_when_it_ended():
     got = w("2026-09-30T22:00:00Z", "2026-10-01T04:00:00Z")
     assert got.outcome == PAYS
     assert got.minutes == 360
+
+
+@pytest.mark.parametrize("impact", ["none", "minor", "maintenance", "", "MAJOR ish"])
+def test_only_major_or_critical_counts(impact):
+    """
+    The provider's own rating decides it. Cloudflare posts over fifty minor
+    incidents a month lasting an hour; cover paying on those pays always.
+    """
+    got = w(LONG_CREATED, LONG_RESOLVED, impact=impact)
+    assert got.outcome == NOT_SERIOUS
+    assert not got.pays
+
+
+@pytest.mark.parametrize("impact", ["major", "critical", "Critical", " major "])
+def test_major_and_critical_both_count(impact):
+    assert w(LONG_CREATED, LONG_RESOLVED, impact=impact).outcome == PAYS
+
+
+def test_a_minor_incident_is_refused_before_its_length_is_judged():
+    got = w(SHORT_CREATED, SHORT_RESOLVED, impact="minor")
+    assert got.outcome == NOT_SERIOUS
+    assert got.minutes == SHORT_MINUTES
 
 
 def test_the_outcome_is_the_same_however_many_times_it_is_asked():

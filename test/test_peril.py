@@ -11,7 +11,7 @@ is trusted rather than checked.
 The rules being enforced:
 
   state is written before value moves, on every path
-  value can only ever reach the policy holder
+  value leaves through one function, to the policy holder or a redeeming funder
   a policy settles once, and cannot be settled again
   the fetched address is built from the registry, never from the caller
   the pool cannot sell cover it could not pay
@@ -27,8 +27,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "contracts" / "peril.py"
 BUNDLE = ROOT / "contracts" / "peril_bundle.py"
 
-EXPECTED_WRITE = {"fund", "buy", "settle", "close"}
-EXPECTED_VIEW = {"get_policy", "policy_ids", "count", "covered", "reserves"}
+EXPECTED_WRITE = {"fund", "withdraw", "buy", "settle", "close"}
+EXPECTED_VIEW = {"get_policy", "policy_ids", "count", "covered", "reserves", "shares_of"}
 
 
 def tree() -> ast.Module:
@@ -91,40 +91,64 @@ def test_only_the_two_methods_that_take_money_are_payable():
 # --------------------------------------------------------------------
 
 
-def transfer_targets() -> list:
-    """Every expression this contract emits a transfer to."""
-    found = []
-    for node in ast.walk(peril_class()):
-        if not isinstance(node, ast.Call):
-            continue
-        text = ast.unparse(node)
-        if ".emit_transfer(" in text:
-            inner = node.func
-            if isinstance(inner, ast.Attribute) and isinstance(inner.value, ast.Call):
-                found.append(ast.unparse(inner.value.args[0]))
+def module_function(name: str) -> ast.FunctionDef:
+    for node in tree().body:
+        if isinstance(node, ast.FunctionDef) and node.name == name:
+            return node
+    raise AssertionError(f"{name} is missing")
+
+
+def pay_targets() -> dict:
+    """Every method that moves value, and who it pays."""
+    found = {}
+    for name, (_, node) in methods().items():
+        for call in ast.walk(node):
+            if isinstance(call, ast.Call) and ast.unparse(call.func) == "_pay":
+                found.setdefault(name, set()).add(ast.unparse(call.args[0]))
     return found
 
 
-def test_value_can_only_reach_the_policy_holder():
+def test_value_leaves_through_one_function_only():
+    """Every transfer goes through _pay, so there is one place to audit."""
+    whole = SOURCE.read_text(encoding="utf-8")
+    assert whole.count("emit_transfer(") == 1
+    assert "emit_transfer(" in ast.unparse(module_function("_pay"))
+
+
+def test_value_can_only_reach_the_policy_holder_or_a_redeeming_funder():
     """
-    The pool pays the person who bought the cover, and nobody else. Not the
-    caller, not the deployer, not an address from an argument.
+    A claim pays the person who bought the cover, not whoever settles it.
+    A redemption pays the funder whose shares were burned. Nothing else
+    moves value, and no address comes from an argument.
     """
-    targets = transfer_targets()
-    assert targets, "no transfer found at all"
-    assert set(targets) == {"deal.holder"}, targets
+    assert pay_targets() == {
+        "settle": {"deal.holder"},
+        "withdraw": {"gl.message.sender_address"},
+    }
 
 
 def test_state_is_written_before_value_moves():
     """
-    The write that marks the policy paid must land before the transfer is
-    emitted. Reversed, a failure between them leaves a policy that still
-    reads as open with its money already gone.
+    The write that marks the policy paid, or burns the shares, must land
+    before the transfer is emitted. Reversed, a failure between them leaves
+    state that still claims the money is there.
     """
     body = src("settle")
-    store = body.index("self.policies[key] = deal")
-    transfer = body.index("emit_transfer")
-    assert store < transfer, "transfer is emitted before the state is stored"
+    assert body.index("self.policies[key] = deal") < body.index("_pay(")
+    body = src("withdraw")
+    assert body.index("self.total_shares = ") < body.index("_pay(")
+    assert body.index("self.pool = ") < body.index("_pay(")
+
+
+def test_payment_uses_the_evm_path():
+    """
+    gl.get_contract_at(...).emit_transfer never delivered to a plain wallet
+    on Bradbury (tested 2026-09-11); the EVM interface did.
+    """
+    fn = module_function("_pay")
+    code = "\n".join(ast.unparse(stmt) for stmt in fn.body[1:])  # skip docstring
+    assert "_Wallet(to).emit_transfer" in code
+    assert "get_contract_at" not in code
 
 
 def test_the_transfer_settles_on_finalisation():
@@ -133,9 +157,15 @@ def test_the_transfer_settles_on_finalisation():
     rolled back. Paying at acceptance can move real value out of a
     transaction that later ceases to exist.
     """
-    body = src("settle")
-    assert "emit_transfer(value=deal.payout)" in body
+    body = ast.unparse(module_function("_pay"))
     assert "on='accepted'" not in body and 'on="accepted"' not in body
+
+
+def test_withdrawals_only_reach_free_funds():
+    """Money backing open cover may be owed to a holder, so it cannot leave."""
+    body = src("withdraw")
+    assert "self.pool - self.locked" in body
+    assert "no cover is open" in body
 
 
 # --------------------------------------------------------------------
@@ -181,8 +211,33 @@ def test_the_buyer_cannot_name_a_host():
     than treated as an address.
     """
     body = src("buy")
-    assert "not in self.covers" in body
-    assert "self.covers[name]" in body
+    assert "not in _COVERS" in body
+    assert "_COVERS[name]" in body
+
+
+def test_the_price_comes_from_the_table_not_the_caller():
+    """
+    The multiple is looked up from the published table by service and
+    threshold. A threshold the table does not list is refused, not priced.
+    """
+    body = src("buy")
+    assert "multiple = prices[threshold]" in body
+    assert "threshold not in prices" in body
+
+
+def test_the_past_cannot_be_insured():
+    """
+    Cover starts the day after purchase. Without this, anyone could buy a
+    policy for an outage that already happened and drain the pool.
+    """
+    body = src("buy")
+    assert "_today()" in body
+    assert "start <= today" in body
+
+
+def test_a_window_is_at_most_a_week():
+    """The price table assumes a week of exposure at most."""
+    assert "_MAX_WINDOW_DAYS" in src("buy")
 
 
 # --------------------------------------------------------------------
@@ -229,7 +284,7 @@ def test_closing_waits_for_the_window():
     after it, so releasing the cover early would strip a holder of a claim
     they were still entitled to make.
     """
-    assert "_window_has_passed" in src("close")
+    assert "_today() < parse_date(deal.window_end)" in src("close")
 
 
 def test_the_clock_comes_from_the_transaction_not_the_machine():

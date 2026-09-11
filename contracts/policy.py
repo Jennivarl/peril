@@ -14,10 +14,10 @@ document and then doing integer arithmetic on it does not.
 """
 
 
-# Statuspage timestamps look like 2026-09-07T14:25:18.000Z, occasionally
-# with an offset instead of Z. Only these two shapes are accepted; anything
-# else is refused rather than guessed at, because a misparsed timestamp
-# silently changes a payout.
+# Statuspage timestamps look like 2026-09-07T14:25:18.000Z, or on some
+# pages 2026-09-10T21:21:35.751-07:00. Only these two shapes are accepted;
+# anything else is refused rather than guessed at, because a misparsed
+# timestamp silently changes a payout.
 _ISO_MIN = len("2026-09-07T14:25:18Z")
 
 
@@ -49,9 +49,29 @@ def _int(text: str) -> int:
     return int(text)
 
 
+def _offset_seconds(zone: str, stamp: str) -> int:
+    """
+    Seconds to subtract to reach UTC: 0 for Z, else a strict +HH:MM / -HH:MM.
+
+    Discord's status page reports times like 2026-09-10T21:21:35.751-07:00.
+    Refusing offsets would make a covered service impossible to settle, so
+    they are converted exactly, in integers. Anything else is still refused.
+    """
+    if zone == "Z":
+        return 0
+    if len(zone) != 6 or zone[0] not in "+-" or zone[3] != ":":
+        raise ValueError("unrecognised time zone in: " + repr(stamp))
+    hours = _int(zone[1:3])
+    minutes = _int(zone[4:6])
+    if hours > 14 or minutes > 59:
+        raise ValueError("time zone out of range: " + repr(stamp))
+    sign = 1 if zone[0] == "+" else -1
+    return sign * (hours * 3600 + minutes * 60)
+
+
 def parse_iso(stamp: str) -> int:
     """
-    An ISO-8601 UTC timestamp as whole seconds since the epoch.
+    An ISO-8601 timestamp as whole UTC seconds since the epoch.
 
     Fractional seconds are discarded rather than rounded. Statuspage reports
     milliseconds, and rounding could move a duration across a threshold by a
@@ -59,18 +79,25 @@ def parse_iso(stamp: str) -> int:
     agreed to. Truncating is arbitrary too, but it is arbitrary in a way
     that is written down and always favours the same side.
 
-    Only UTC is accepted. An offset such as +02:00 is refused rather than
-    converted, because a source that starts emitting offsets has changed its
-    format and that deserves a failed settlement and a human look, not a
-    silent reinterpretation.
+    The zone must be Z or a numeric offset, which is converted to UTC. A
+    stamp with no zone at all is refused: it could be any time of day.
     """
     s = (stamp or "").strip()
     if len(s) < _ISO_MIN or s[4] != "-" or s[7] != "-" or s[10] != "T":
-        raise ValueError("not an ISO-8601 UTC timestamp: " + repr(stamp))
-    if not s.endswith("Z"):
-        raise ValueError("only UTC timestamps ending in Z are accepted: " + repr(stamp))
+        raise ValueError("not an ISO-8601 timestamp: " + repr(stamp))
     if s[13] != ":" or s[16] != ":":
         raise ValueError("malformed time component: " + repr(stamp))
+
+    # Seconds end at index 19. Then an optional fraction, then the zone.
+    rest = s[19:]
+    if rest.startswith("."):
+        digits = 1
+        while digits < len(rest) and rest[digits].isdigit():
+            digits += 1
+        if digits == 1:
+            raise ValueError("empty fractional seconds in: " + repr(stamp))
+        rest = rest[digits:]
+    offset = _offset_seconds(rest, stamp)
 
     year = _int(s[0:4])
     month = _int(s[5:7])
@@ -85,7 +112,8 @@ def parse_iso(stamp: str) -> int:
     if hour > 23 or minute > 59 or second > 60:
         raise ValueError("time out of range: " + repr(stamp))
 
-    return _days_from_civil(year, month, day) * 86400 + hour * 3600 + minute * 60 + second
+    local = _days_from_civil(year, month, day) * 86400 + hour * 3600 + minute * 60 + second
+    return local - offset
 
 
 def parse_date(day: str) -> int:
@@ -112,12 +140,20 @@ def outage_minutes(created_at: str, resolved_at: str) -> int:
     return (end - start) // 60
 
 
-# The four ways a settlement can end. Strings rather than an enum so the
+# The five ways a settlement can end. Strings rather than an enum so the
 # value stored on chain reads the same as the value in a test.
 PAYS = "pays"
 UNDER_THRESHOLD = "under_threshold"
+NOT_SERIOUS = "not_serious"
 OUTSIDE_WINDOW = "outside_window"
 UNRESOLVED = "unresolved"
+
+# The provider's own rating, not ours. Statuspage rates every incident none,
+# minor, major or critical, and some providers file maintenance under an
+# impact of its own. Only the top two count: Cloudflare posts more than fifty
+# minor incidents a month lasting over an hour, most of them one product in
+# one region, and cover that paid on those would pay on every policy sold.
+SERIOUS = ("major", "critical")
 
 
 class Assessment:
@@ -142,6 +178,7 @@ class Assessment:
 def assess(
     created_at: str,
     resolved_at: str,
+    impact: str,
     window_start: str,
     window_end: str,
     threshold_minutes: int,
@@ -149,7 +186,7 @@ def assess(
     """
     Decide whether one incident triggers one policy.
 
-    Three questions in order, cheapest first, and each one can only refuse:
+    Four questions in order, cheapest first, and each one can only refuse:
 
       Is the incident over? An incident still in progress has no duration
       yet. Settling on a partial outage would let a claimant settle early
@@ -159,6 +196,10 @@ def assess(
       Did it start inside the covered window? The window is half open,
       [start, end), so an incident beginning at the exact instant a window
       closes belongs to the next one and cannot be claimed twice.
+
+      Did the provider rate it serious? Major or critical, by the provider's
+      own published rating. An upgrade after the fact is honoured, because a
+      refusal leaves the policy open and it can be settled again.
 
       Was it long enough? Compared against the threshold the buyer agreed
       to when the policy was written, which is the only number in this whole
@@ -179,6 +220,14 @@ def assess(
             OUTSIDE_WINDOW,
             minutes,
             "the incident began outside the covered window",
+        )
+
+    rated = (impact or "").strip().lower()
+    if rated not in SERIOUS:
+        return Assessment(
+            NOT_SERIOUS,
+            minutes,
+            f"the provider rated it {rated or 'unrated'}, not major or critical",
         )
 
     if minutes < threshold_minutes:
