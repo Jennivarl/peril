@@ -266,3 +266,23 @@ def test_bundle_is_current():
 def test_the_bundle_has_no_local_imports():
     """GenVM cannot see sibling modules, so any that survived would fail."""
     assert "from contracts." not in BUNDLE.read_text(encoding="utf-8")
+
+
+def test_the_runner_header_stands_alone():
+    """
+    GenVM reads every leading comment line as one runner header. A second
+    comment line deployed on chain as invalid_contract, "trailing
+    characters at line 1 column 84", while passing lint and local tests.
+    """
+    lines = BUNDLE.read_text(encoding="utf-8").split("\n")
+    assert lines[0].startswith('# { "Depends": "py-genlayer:')
+    assert not lines[1].lstrip().startswith("#")
+
+
+def test_the_deploy_fits_under_the_gas_cap():
+    """
+    Bradbury drops any transaction above 16,777,216 gas without an error.
+    Measured: 4.0 KB cost 4.32M gas and 21.2 KB cost 17.74M, about 780 gas a
+    byte, so 18 KB keeps a deploy near 14.5M with room to spare.
+    """
+    assert len(BUNDLE.read_bytes()) < 18_000
