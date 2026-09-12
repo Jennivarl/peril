@@ -1,0 +1,228 @@
+# PERIL
+
+Cover against a service you depend on going down, settled by arithmetic
+instead of by a claims department.
+
+You buy cover on a named service for a window of up to a week. If that
+provider publishes an incident inside your window that it rated major or
+critical, and that lasted at least the threshold you chose, the pool pays
+you. There is no claim form, no assessor, and nobody with the power to say
+no, because nothing in the decision is a matter of opinion.
+
+Built on [GenLayer](https://genlayer.com), on the Bradbury testnet.
+
+| | |
+|---|---|
+| Contract | [`0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440`](https://explorer-bradbury.genlayer.com/address/0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440) |
+| Network | Bradbury, chain id 4221, `https://rpc-bradbury.genlayer.com` |
+| Tests | 131, `python -m pytest -q` |
+
+---
+
+## Why this works on a network of independent validators
+
+The settlement is one fetch and some subtraction:
+
+1. Fetch one incident record from the provider's own status API.
+2. Read four fields: id, `created_at`, `resolved_at`, `impact`.
+3. Subtract the timestamps. Compare to the threshold. Compare the rating.
+
+Every validator fetches the same document and does the same integer
+arithmetic, so they reach the same answer by construction rather than by
+agreement. There is no model call anywhere in the settlement path. Asking
+several language models to grade something produces several answers and the
+transaction stalls; asking them to fetch a document and subtract does not.
+
+Validators compare **only those four fields**, never the whole response. A
+status page carries fields that move between requests, including the page's
+own `updated_at` and the incident's update log, so comparing bodies would
+make honest validators disagree about a record that had not changed.
+
+The arithmetic lives in [`contracts/policy.py`](contracts/policy.py), which
+imports nothing from GenLayer and can be read and tested on its own.
+
+## Four things a caller cannot touch
+
+**The URL.** The buyer picks a service by name from a registry fixed at
+deployment, and the contract builds the address it fetches. A caller who
+supplies the address the judge reads has appointed themselves the judge.
+
+**The price.** Each service is sold only at the thresholds and multiples in
+the published table, derived from that provider's own history. Nobody sets a
+price per sale, so no underwriter's judgement enters.
+
+**The past.** Cover starts the day after it is bought, so an outage that has
+already happened, or is already under way, can never be insured. Without
+this rule anyone could read a status page and buy a certainty.
+
+**The evidence.** A claimant names an incident by id and never supplies its
+contents. Those are fetched, and every validator fetches them again. The id
+must be alphanumeric, so nobody can walk out of the incidents path, and the
+record that comes back must carry the id that was asked for, so a host that
+answers every path with its newest incident cannot settle a policy against
+something nobody named.
+
+## What is on sale, and why those prices
+
+Only incidents the provider itself rates **major or critical** count. That
+matters more than it sounds: Cloudflare publishes more than fifty incidents
+a month lasting over an hour, nearly all of them minor and scoped to one
+product in one region. Cover that paid on those would pay on every policy
+ever sold.
+
+[`deploy/price_table.py`](deploy/price_table.py) reads twelve months of each
+provider's published history, keeps the serious incidents, fetches each one
+for its exact start and end, and counts how often one lasting at least T
+minutes began. With a weekly rate L, the chance of at least one in a week is
+`1 - exp(-L)`, and the payout multiple is the largest whole number keeping
+the expected payout under half the premium. Three phantom outages are added
+to every count, so a clean year is not priced as a guarantee. The raw
+evidence is saved in [`deploy/price_table.json`](deploy/price_table.json),
+and the numbers below are reproducible by rerunning the script.
+
+| Service | Serious outages, 12 months | 1h | 2h | 4h | 8h | 12h | 24h |
+|---|---|---|---|---|---|---|---|
+| GitHub | 77 | | | 2x | 3x | 6x | 8x |
+| Discord | 34 | | 2x | 5x | 8x | 8x | 8x |
+| Vercel | 30 | | 2x | 3x | 5x | 5x | 6x |
+| Netlify | 23 | 2x | 2x | 4x | 4x | 4x | 6x |
+| npm | 4 | 6x | 8x | 8x | 8x | 8x | 8x |
+
+Longer outage, rarer event, bigger multiple. A blank means that combination
+would pay too often to sell for more than the premium.
+
+Cloudflare and OpenAI are **not** offered. Their status pages publish no
+history to price from (`history.json` returns 404, checked 2026-09-11), and
+guessing a price from three weeks of data would be pretending to know
+something.
+
+## The pool
+
+Anyone can fund the pool and receive shares of it. Premiums raise what a
+share is worth; payouts lower it. That is underwriting, and it is open to
+anyone rather than to an appointed insurer.
+
+Shares are minted at the pool's full value, so a new funder pays for their
+part of any premium already earned and cannot buy in cheaply just before
+policies expire. They are redeemed only against funds not backing open
+cover, which has a useful consequence: spotting a qualifying outage before
+anyone settles it and withdrawing first gains nothing, because that payout
+was never part of the free funds. A funder who leaves while cover is open
+leaves their part of it to the funders who stay and carry that risk. The
+last shares cannot leave until no cover is open, or the money behind that
+cover would belong to nobody.
+
+The pool never sells cover it could not pay. Every sale checks that every
+open policy could still be paid in full.
+
+## The contract
+
+Writes:
+
+| Method | Who | What it does |
+|---|---|---|
+| `fund()` payable | anyone | Adds to the pool, mints shares |
+| `withdraw(shares)` | funders | Redeems shares against free funds |
+| `buy(policy_id, cover, window_start, window_end, threshold_minutes)` payable | anyone | Sells cover. Value sent is the premium |
+| `settle(policy_id, incident_id)` | anyone | Measures one incident against one policy |
+| `close(policy_id)` | anyone | Releases cover after the window has passed |
+
+Views: `covered`, `reserves`, `shares_of`, `get_policy`, `policy_ids`,
+`count`.
+
+`settle` is deliberately callable by anyone. The outcome is fixed by the
+incident record and the numbers the buyer already agreed to, so there is
+nothing a caller can bias, and a privileged settler would reintroduce the
+one thing this design removes: somebody who decides whether you get paid.
+
+A settlement that does not qualify **leaves the policy open**. One incident
+failing to clear the bar says nothing about the next, and closing it would
+let anyone burn someone's cover on its first day by settling it against a
+two minute blip.
+
+Five outcomes are possible: `pays`, `under_threshold`, `not_serious`,
+`outside_window`, `unresolved`. Each is stored on the policy with the
+incident id, the measured minutes, the provider's rating, and a sentence
+saying why.
+
+## How money leaves
+
+Through `_pay`, one function, using the EVM interface:
+
+```python
+_Wallet(to).emit_transfer(value=amount)
+```
+
+This is not a detail. The obvious call, `gl.get_contract_at(addr).emit_transfer(...)`,
+sends a GenVM message, which is addressed to a GenVM contract and **never
+reaches a plain wallet on Bradbury**. Tested on 2026-09-11 by paying one
+wallet three ways from one contract: the EVM transfer of 0.011 GEN arrived,
+while message transfers of 0.012 on accepted and 0.013 on finalised did not,
+hours after finalising. Verified here by balance: this contract's balance
+fell from 0.2 to 0.15 GEN when 0.05 was redeemed.
+
+State is always written before value moves, on every path, and transfers
+settle on finalisation rather than acceptance, because state on this network
+has been observed readable and then rolled back.
+
+## Running the tests
+
+```bash
+pip install -r requirements.txt
+python -m pytest -q
+```
+
+131 tests, no network and no chain:
+
+- [`test/test_policy.py`](test/test_policy.py) covers the arithmetic: the
+  calendar, strict timestamp parsing including time zone offsets, durations,
+  and every outcome. Fixtures are real incidents.
+- [`test/test_direct.py`](test/test_direct.py) runs the deployed bundle
+  in-process with genlayer-test's direct mode, serving real saved status
+  page responses, and checks both the leader's answer and what an honest
+  validator would do with it, including four ways a dishonest leader could
+  lie.
+- [`test/test_peril.py`](test/test_peril.py) reads the source and asserts
+  its shape: that state is written before value moves, that value can only
+  reach a policy holder or a redeeming funder, that the URL comes from the
+  registry, that the price comes from the table.
+
+Every one of these was checked by breaking the contract on purpose, eleven
+different ways, and confirming the tests failed.
+
+## Known limits, stated rather than hidden
+
+**The provider is the oracle.** PERIL measures what a provider published
+about itself. A provider that under-reports its own outages pays out less.
+That is true of every parametric product, and the alternative is somebody
+judging what really happened.
+
+**Consensus needs the page to be readable.** If the status page is
+unreachable when a claim is made, the settlement fails and the policy stays
+open. Try again later.
+
+**Rates come from a year of history.** Outages cluster, and a Poisson
+assumption treats them as independent. The padding and the fifty percent
+loss ratio are the margin for that; they are not a proof of solvency.
+
+**Windows are capped at seven days** and cover can be bought at most thirty
+days ahead, because the price table only assumes that much exposure.
+
+## Repository
+
+```
+contracts/policy.py         the arithmetic, no GenLayer import
+contracts/peril.py          the contract
+contracts/peril_bundle.py   generated, the file that deploys
+deploy/build_bundle.py      inlines the modules, strips comments for the gas cap
+deploy/price_table.py       derives the price table from published history
+deploy/price_table.json     the raw evidence behind the table
+test/                       131 tests and real status page fixtures
+```
+
+Edit the modules, never the bundle: it is regenerated, and a test asserts it
+matches its sources so a stale one cannot be deployed.
+
+## Licence
+
+MIT.
