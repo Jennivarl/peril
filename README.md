@@ -229,6 +229,8 @@ adds instead of hiding it:
   proof the relay cheated. What the relay is trusted for is showing up.
 
 The GEN pool stays exactly as it is. Arc is extra reach, not a replacement.
+The work in progress lives in [`next/arc/`](next/arc/README.md), clearly
+marked as paused and not part of what is deployed.
 
 ## Repository
 
@@ -240,6 +242,8 @@ deploy/build_bundle.py      inlines the modules, strips comments for the gas cap
 deploy/price_table.py       derives the price table from published history
 deploy/price_table.json     the raw evidence behind the table
 test/                       131 tests and real status page fixtures
+docs/UI_BRIEF.md            what the front end reads, does and shows
+next/arc/                   PAUSED: USDC payouts on Arc, not deployed, not tested
 ```
 
 Edit the modules, never the bundle: it is regenerated, and a test asserts it

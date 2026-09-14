@@ -4,3 +4,8 @@ __pycache__/
 artifacts/
 .env
 node_modules/
+
+# next/arc: Foundry dependencies and build output (restore with: forge install foundry-rs/forge-std)
+next/arc/vault/lib/
+next/arc/vault/out/
+next/arc/vault/cache/
