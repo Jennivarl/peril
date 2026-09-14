@@ -208,6 +208,28 @@ loss ratio are the margin for that; they are not a proof of solvency.
 **Windows are capped at seven days** and cover can be bought at most thirty
 days ahead, because the price table only assumes that much exposure.
 
+## What comes next: paying out in USDC on Arc
+
+GEN is a test token, and the people who would buy outage cover (dev teams,
+SaaS companies, agents that depend on APIs) hold dollars. The next step is a
+second pool that takes premiums and pays claims in USDC on
+[Arc](https://docs.arc.io), with the decision still made here.
+
+Arc cannot read a status page or check what GenLayer validators agreed, and
+as of September 2026 there is no trustless message route from GenLayer to
+Arc. So the design keeps GenLayer as the judge and states the one trust it
+adds instead of hiding it:
+
+- A judge contract on GenLayer measures claims exactly as this one does and
+  stores each verdict under the full terms of the policy.
+- A vault on Arc holds the USDC, and records the holder and the payout at
+  purchase, so nothing downstream can change who is paid or how much.
+- A relay carries a paying verdict to the vault. Every payout on Arc cites
+  the verdict it came from, so a payout with no matching verdict is public
+  proof the relay cheated. What the relay is trusted for is showing up.
+
+The GEN pool stays exactly as it is. Arc is extra reach, not a replacement.
+
 ## Repository
 
 ```
