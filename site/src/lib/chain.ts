@@ -169,6 +169,18 @@ export async function readPolicies(): Promise<Policy[]> {
   return Promise.all(ids.map(readPolicy));
 }
 
+/** A wallet's GEN balance in wei, read straight from the RPC. No wallet needed. */
+export async function readBalance(address: string): Promise<string> {
+  const res = await fetch(RPC, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getBalance", params: [address, "latest"] }),
+  });
+  const body = (await res.json()) as { result?: string };
+  if (!body.result) throw new Error("no balance returned");
+  return BigInt(body.result).toString();
+}
+
 // ------------------------------------------------------------------
 // transaction lifecycle
 // ------------------------------------------------------------------
