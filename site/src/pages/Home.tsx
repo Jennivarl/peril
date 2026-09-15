@@ -99,7 +99,7 @@ export default function Home() {
           {"No human adjusters. Your cover pays when the provider's own status page shows an outage it rated major or critical, lasting at least the threshold you chose."}
         </Principle>
         <Principle n="02" title="Deterministic Consensus">
-          GenLayer Bradbury validators each fetch the incident themselves and agree on four fields: its id, when it started, when it ended, and its severity.
+          GenLayer validators each fetch the incident themselves and agree on four fields: its id, when it started, when it ended, and its severity.
         </Principle>
         <Principle n="03" title="Automatic Settlement">
           The payout is fixed when you buy and locked in the pool. When a claim qualifies it goes to your wallet, and nobody can change who is paid or how much.
@@ -128,7 +128,7 @@ export default function Home() {
         <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="shop-grid">
           {!covers.data && (
             <p className="font-mono text-[#9ca3af] text-[13px] m-0">
-              {covers.error ? `Could not read the price list from Bradbury: ${covers.error}` : "Reading the price list from Bradbury…"}
+              {covers.error ? `Could not read the price list from Studio Next: ${covers.error}` : "Reading the price list from Studio Next…"}
             </p>
           )}
           {covers.data?.map((c) => {
@@ -178,7 +178,7 @@ export default function Home() {
             <p className="relative shrink-0 w-[100px] m-0">STATUS</p>
           </div>
           {!policies.data && (
-            <LedgerNote>{policies.error ? `Could not read the ledger from Bradbury: ${policies.error}` : "Reading the ledger from Bradbury…"}</LedgerNote>
+            <LedgerNote>{policies.error ? `Could not read the ledger from Studio Next: ${policies.error}` : "Reading the ledger from Studio Next…"}</LedgerNote>
           )}
           {policies.data?.length === 0 && <LedgerNote>No cover has been sold yet.</LedgerNote>}
           {policies.data?.map((p) => {
@@ -216,7 +216,7 @@ export default function Home() {
             The duration is plain subtraction, compared with the threshold you bought. No model decides it.
           </Step>
           <Step n="04" title="Disburse Payout">
-            A qualifying claim is marked paid within minutes; the GEN reaches your wallet when the transaction finalises, about 30 minutes later.
+            A qualifying claim is marked paid within minutes; the GEN reaches your wallet when the transaction finalises, after Studio Next's 30 second finality window.
           </Step>
         </div>
       </div>

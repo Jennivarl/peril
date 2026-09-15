@@ -219,7 +219,7 @@ export default function MyCover() {
                 {!policies.data && (
                   <div className="border border-[#1e222a] border-solid p-[16px] w-full">
                     <p className="font-mono text-[#9ca3af] text-[13px] m-0">
-                      {policies.error ? `Could not read policies from Bradbury: ${policies.error}` : "Reading policies from Bradbury…"}
+                      {policies.error ? `Could not read policies from Studio Next: ${policies.error}` : "Reading policies from Studio Next…"}
                     </p>
                   </div>
                 )}
@@ -396,7 +396,7 @@ export default function MyCover() {
                 <p className="font-serif text-[#9ca3af] text-[12px] leading-[17px] m-0" role="status">
                   {"Claim submitted "}
                   <a href={txUrl(sent)} target="_blank" rel="noreferrer" className="font-mono text-accent-text">{short(sent, 8, 6)}</a>
-                  {". The verdict lands in a few minutes; a payout reaches the holder about 30 minutes after that."}
+                  {". The verdict lands in a few minutes; a payout reaches the holder when the transaction finalises, 30 seconds after that on Studio Next."}
                 </p>
               )}
             </>

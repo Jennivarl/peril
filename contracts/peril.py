@@ -1,4 +1,5 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# v0.3.0
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 """
 PERIL. Cover against a service you depend on going down.
 
@@ -39,7 +40,8 @@ open cover, so nobody can leave with money a policyholder may be owed.
 
 from dataclasses import dataclass
 
-from genlayer import *
+import genlayer as gl
+from genlayer.types import *
 
 from contracts.policy import SERIOUS, assess, parse_date
 
@@ -113,7 +115,7 @@ def _read_incident(url: str) -> dict:
     return _fields_from_incident(page)
 
 
-@allow_storage
+@gl.storage.allow
 @dataclass
 class Policy:
     cover: str
@@ -134,21 +136,21 @@ class Policy:
     reason: str
 
 
-class Peril(gl.Contract):
-    policies: TreeMap[str, Policy]
-    ids: DynArray[str]
+class Peril(gl.contract.Contract):
+    policies: gl.storage.TreeMap[str, Policy]
+    ids: gl.storage.DynArray[str]
     # Value committed to open policies. The pool can only sell cover it
     # could actually pay, so this is checked before every sale.
     locked: u256
     pool: u256
     # Ownership of the pool, keyed by lowercase hex address.
-    shares: TreeMap[str, u256]
+    shares: gl.storage.TreeMap[str, u256]
     total_shares: u256
 
     def __init__(self):
-        self.locked = u256(0)
-        self.pool = u256(0)
-        self.total_shares = u256(0)
+        self.locked = 0
+        self.pool = 0
+        self.total_shares = 0
 
     # ----------------------------------------------------------------
     # the pool
@@ -172,9 +174,9 @@ class Peril(gl.Contract):
         if minted <= 0:
             raise gl.vm.UserError("too small to buy a share of this pool")
         key = gl.message.sender_address.as_hex.lower()
-        self.shares[key] = u256(self.shares.get(key, u256(0)) + minted)
-        self.total_shares = u256(self.total_shares + minted)
-        self.pool = u256(self.pool + amount)
+        self.shares[key] = self.shares.get(key, 0) + minted
+        self.total_shares = self.total_shares + minted
+        self.pool = self.pool + amount
         return {"minted": str(minted), **self.reserves()}
 
     @gl.public.write
@@ -192,7 +194,7 @@ class Peril(gl.Contract):
         """
         n = int(shares)
         key = gl.message.sender_address.as_hex.lower()
-        held = int(self.shares.get(key, u256(0)))
+        held = int(self.shares.get(key, 0))
         if n <= 0 or n > held:
             raise gl.vm.UserError(f"you hold {held} shares")
         if n == int(self.total_shares) and self.locked > 0:
@@ -203,9 +205,9 @@ class Peril(gl.Contract):
         if value <= 0:
             raise gl.vm.UserError("those shares redeem for nothing right now")
 
-        self.shares[key] = u256(held - n)
-        self.total_shares = u256(self.total_shares - n)
-        self.pool = u256(self.pool - value)
+        self.shares[key] = held - n
+        self.total_shares = self.total_shares - n
+        self.pool = self.pool - value
         _pay(gl.message.sender_address, value)
         return {"redeemed": str(value), **self.reserves()}
 
@@ -275,27 +277,27 @@ class Peril(gl.Contract):
         premium = gl.message.value
         if premium <= 0:
             raise gl.vm.UserError("send the premium with this call")
-        payout = u256(premium * multiple)
+        payout = premium * multiple
 
         # The premium joins the pool before solvency is checked, because it
         # is part of what backs this policy. What must hold afterwards is
         # that every open policy could still be paid in full.
-        pool_after = u256(self.pool + premium)
+        pool_after = self.pool + premium
         if pool_after - self.locked < payout:
             raise gl.vm.UserError(
                 "the pool cannot cover this payout; fund it or buy less"
             )
 
         self.pool = pool_after
-        self.locked = u256(self.locked + payout)
+        self.locked = self.locked + payout
 
         deal = Policy(
             cover=name,
             host=host,
             window_start=window_start.strip(),
             window_end=window_end.strip(),
-            threshold_minutes=u256(threshold),
-            multiple=u256(multiple),
+            threshold_minutes=threshold,
+            multiple=multiple,
             premium=premium,
             payout=payout,
             holder=gl.message.sender_address,
@@ -303,7 +305,7 @@ class Peril(gl.Contract):
             incident_id="",
             impact="",
             outcome="",
-            minutes=u256(0),
+            minutes=0,
             reason="",
         )
         self.policies[key] = deal
@@ -351,7 +353,9 @@ class Peril(gl.Contract):
                 return str(leader["created_at"]) == ""
             return all(str(leader[f]) == mine[f] for f in _BLANK)
 
-        found = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        # In v0.3 run_nondet runs the validator as written, with no extra
+        # sandbox, which is what the v0.2 contract used.
+        found = gl.vm.run_nondet(leader_fn, validator_fn)
 
         created = str(found["created_at"])
         resolved = str(found["resolved_at"])
@@ -384,13 +388,13 @@ class Peril(gl.Contract):
         deal.incident_id = ref
         deal.impact = impact
         deal.outcome = verdict.outcome
-        deal.minutes = u256(verdict.minutes)
+        deal.minutes = verdict.minutes
         deal.reason = verdict.reason
 
         if verdict.pays:
             deal.state = STATE_PAID
-            self.locked = u256(self.locked - deal.payout)
-            self.pool = u256(self.pool - deal.payout)
+            self.locked = self.locked - deal.payout
+            self.pool = self.pool - deal.payout
             self.policies[key] = deal
             # State is settled before any value moves.
             _pay(deal.holder, deal.payout)
@@ -426,7 +430,7 @@ class Peril(gl.Contract):
         deal.state = STATE_CLOSED
         if not deal.reason:
             deal.reason = "the window closed with no qualifying outage"
-        self.locked = u256(self.locked - deal.payout)
+        self.locked = self.locked - deal.payout
         self.policies[key] = deal
         return _as_dict(key, deal)
 
@@ -475,7 +479,7 @@ class Peril(gl.Contract):
     def shares_of(self, holder: str) -> dict:
         """A funder's shares, and what they would redeem for right now."""
         key = _hex(holder)
-        held = int(self.shares.get(key, u256(0)))
+        held = int(self.shares.get(key, 0))
         total = int(self.total_shares)
         value = held * int(self.pool - self.locked) // total if total else 0
         return {"shares": str(held), "redeemable": str(value)}
@@ -485,14 +489,13 @@ def _today() -> int:
     """
     Midnight UTC of the transaction's date.
 
-    Read from the transaction rather than from a wall clock. `gl.message`
-    carries no time, but `gl.message_raw` has a `datetime` string that is
-    part of the message itself, so every validator in a round sees the same
-    value. Observed on Bradbury as '2026-09-11T14:59:46Z'. Only the date is
-    used: windows start and end at midnight, so a day is all the precision
-    any rule here needs.
+    Read from the transaction rather than from a wall clock. `gl.message.raw`
+    has a `datetime` string that is part of the message itself, so every
+    validator in a round sees the same value. Observed on Bradbury as
+    '2026-09-11T14:59:46Z'. Only the date is used: windows start and end at
+    midnight, so a day is all the precision any rule here needs.
     """
-    stamp = str(gl.message_raw["datetime"])
+    stamp = str(gl.message.raw["datetime"])
     if len(stamp) < 10:
         raise gl.vm.UserError("the transaction carried no usable date")
     return parse_date(stamp[:10])
@@ -520,14 +523,13 @@ def _pay(to: Address, amount: int) -> None:
     """
     The one place value leaves the contract.
 
-    Through the EVM interface, not gl.get_contract_at(...).emit_transfer.
-    Tested on Bradbury on 2026-09-11 by paying one wallet three ways from
-    one contract: the EVM transfer of 0.011 GEN arrived, while GenVM message
-    transfers of 0.012 on accepted and 0.013 on finalized never did, hours
-    after finalizing. A GenVM message is addressed to a GenVM contract, and
-    a policyholder or funder is a plain wallet.
+    Through the EVM interface. On Bradbury (2026-09-11) one contract paid
+    one wallet three ways: the EVM transfer arrived, GenVM message transfers
+    never did. On Studio Next (2026-09-15) the EVM transfer paid a fresh
+    wallet 0.1 GEN, once the transaction reserved a fee for that outgoing
+    message; the client does that by estimating fees from a simulation.
     """
-    _Wallet(to).emit_transfer(value=u256(amount))
+    _Wallet(to).emit_transfer(value=amount)
 
 
 def _as_dict(key: str, deal: Policy) -> dict:

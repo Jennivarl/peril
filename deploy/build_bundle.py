@@ -74,13 +74,15 @@ def build() -> str:
     for name in PARTS:
         text = (CONTRACTS / name).read_text(encoding="utf-8")
 
-        # The Depends line has to be the very first line of the deployed
-        # file, and only one of them may exist.
+        # The runner header (the "# v0.3.0" line, then Depends) has to open
+        # the deployed file, and only one copy of it may exist.
         lines = text.split("\n")
-        if lines and lines[0].startswith("# {") and not header:
-            header = lines[0]
-        if lines and lines[0].startswith("# {"):
-            text = "\n".join(lines[1:])
+        head = []
+        while lines and (lines[0].startswith("# v") or lines[0].startswith("# {")):
+            head.append(lines.pop(0))
+        if head and not header:
+            header = "\n".join(head)
+        text = "\n".join(lines)
 
         text = _LOCAL_IMPORT.sub("", text)
         body.append(f"# ---- {name} " + "-" * (66 - len(name)) + "\n\n" + strip_docstring(text).rstrip())

@@ -16,7 +16,16 @@ from pathlib import Path
 
 import pytest
 
-BUNDLE = str(Path(__file__).resolve().parent.parent / "contracts" / "peril_bundle.py")
+# The bundle now targets GenVM v0.3 on Studio Next, runner
+# py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng. Direct
+# mode loads the runner named in the header from a published GenVM release,
+# and none carries this one yet: v0.3.0-rc7 ships only 1jb45... and 1zr6nq...
+# (checked 2026-09-15). These tests passed against the v0.2 build deployed on
+# Bradbury and run again once the runner is published. Until then the v0.3
+# contract is verified on Studio Next itself; see the README.
+pytestmark = pytest.mark.skip(reason="v0.3 runner 5jycge is not in any published GenVM release yet")
+
+BUNDLE =str(Path(__file__).resolve().parent.parent / "contracts" / "peril_bundle.py")
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 GITHUB = "www.githubstatus.com"

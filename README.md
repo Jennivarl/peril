@@ -9,13 +9,14 @@ critical, and that lasted at least the threshold you chose, the pool pays
 you. There is no claim form, no assessor, and nobody with the power to say
 no, because nothing in the decision is a matter of opinion.
 
-Built on [GenLayer](https://genlayer.com), on the Bradbury testnet.
+Built on [GenLayer](https://genlayer.com), on Studio Next (Consensus v0.6, GenVM v0.3).
 
 | | |
 |---|---|
-| Contract | [`0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440`](https://explorer-bradbury.genlayer.com/address/0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440) |
-| Network | Bradbury, chain id 4221, `https://rpc-bradbury.genlayer.com` |
-| Tests | 131, `python -m pytest -q` |
+| Contract | [`0xA9df0bc18628Ea161077190515aA039026C5D00A`](https://explorer-studio-dev.genlayer.com/address/0xA9df0bc18628Ea161077190515aA039026C5D00A) |
+| Network | Studio Next, chain id 61997, `https://studio-next.genlayer.com/api` |
+| Earlier deployment | Bradbury testnet, [`0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440`](https://explorer-bradbury.genlayer.com/address/0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440), where the first real claim was settled |
+| Tests | `python -m pytest -q`: 72 run, 61 direct-mode tests waiting on a published v0.3 runner |
 
 ---
 
@@ -155,11 +156,18 @@ _Wallet(to).emit_transfer(value=amount)
 
 This is not a detail. The obvious call, `gl.get_contract_at(addr).emit_transfer(...)`,
 sends a GenVM message, which is addressed to a GenVM contract and **never
-reaches a plain wallet on Bradbury**. Tested on 2026-09-11 by paying one
+reached a plain wallet on Bradbury**. Tested on 2026-09-11 by paying one
 wallet three ways from one contract: the EVM transfer of 0.011 GEN arrived,
 while message transfers of 0.012 on accepted and 0.013 on finalised did not,
-hours after finalising. Verified here by balance: this contract's balance
-fell from 0.2 to 0.15 GEN when 0.05 was redeemed.
+hours after finalising.
+
+On Studio Next the same EVM transfer works, with one condition: a
+transaction that pays a wallet must reserve a fee for that outgoing payment,
+or it fails with `fee no_matching_allocation`. The client gets that
+reservation by simulating the call first (`estimateTransactionFeesForWrite`
+in genlayer-js 2.0) and sending its fees with the write. Tested on
+2026-09-15: a fresh wallet received exactly 0.1 GEN and the paying contract
+fell from 1.0 to 0.9. The site sends every write this way.
 
 State is always written before value moves, on every path, and transfers
 settle on finalisation rather than acceptance, because state on this network
@@ -172,23 +180,67 @@ pip install -r requirements.txt
 python -m pytest -q
 ```
 
-131 tests, no network and no chain:
+No network and no chain:
 
 - [`test/test_policy.py`](test/test_policy.py) covers the arithmetic: the
   calendar, strict timestamp parsing including time zone offsets, durations,
   and every outcome. Fixtures are real incidents.
+- [`test/test_peril.py`](test/test_peril.py) reads the source and asserts
+  its shape: that state is written before value moves, that value can only
+  reach a policy holder or a redeeming funder, that the URL comes from the
+  registry, that the price comes from the table, and that no v0.2 SDK name
+  survived the port.
 - [`test/test_direct.py`](test/test_direct.py) runs the deployed bundle
   in-process with genlayer-test's direct mode, serving real saved status
   page responses, and checks both the leader's answer and what an honest
   validator would do with it, including four ways a dishonest leader could
-  lie.
-- [`test/test_peril.py`](test/test_peril.py) reads the source and asserts
-  its shape: that state is written before value moves, that value can only
-  reach a policy holder or a redeeming funder, that the URL comes from the
-  registry, that the price comes from the table.
+  lie. **Skipped for now:** direct mode loads the runner named in the
+  contract header from a published GenVM release, and the v0.3 runner Studio
+  Next uses (`5jycge...`) is in none of them yet. All 61 passed against the
+  v0.2 build on Bradbury, and the v0.3 build is verified on Studio Next
+  itself, below.
 
-Every one of these was checked by breaking the contract on purpose, eleven
-different ways, and confirming the tests failed.
+The 72 that run today pass. On the v0.2 build, every test was checked by
+breaking the contract on purpose, eleven different ways, and confirming the
+tests failed.
+
+## Verified live on Studio Next
+
+Every public path of the deployed contract, run on 2026-09-15 and checked
+against the chain, not against the contract's own report:
+
+| Step | Transaction | What was checked |
+|---|---|---|
+| Fund 5 GEN | [`0x3e54d287…`](https://explorer-studio-dev.genlayer.com/tx/0x3e54d287a1197849a7c897a0991f1adca339b8be619f9b8aed15a8b42a479aea) | 5 shares minted |
+| Buy GitHub cover, 4 h, 16 to 23 Sept, 0.5 GEN | [`0xcaa539cb…`](https://explorer-studio-dev.genlayer.com/tx/0xcaa539cbad3aea12d3c022f1f27423d626efaf47f6e5946039ff0ddfb3ab8ba5) | 1 GEN locked, window accepted as starting tomorrow |
+| Buy Discord cover, 2 h, 16 to 23 Sept, 0.5 GEN | [`0x71446ef2…`](https://explorer-studio-dev.genlayer.com/tx/0x71446ef24e26364a378757af135dc75919befdacd46b30054815ecf41afdedc0) | pool 6, locked 2, free 4 |
+| Withdraw 0.1 shares | [`0x699fbda5…`](https://explorer-studio-dev.genlayer.com/tx/0x699fbda5317e2a5c765d8ff1cd84ea9e0b90ddf3612d783b060688db8c6bd35b) | contract balance fell from 6.00 to exactly 5.92 GEN |
+| Settle GitHub cover against real incident `0rn90wk115q9` | [`0x1e206da5…`](https://explorer-studio-dev.genlayer.com/tx/0x1e206da59084f08d50c465254b568490320c20e0ced08883e69c15e5b212f306) | validators fetched GitHub's record and agreed; refused as `outside_window` (it began 13 Sept), policy still open, no GEN moved |
+
+A paying claim needs a real GitHub or Discord outage inside 16 to 23
+September that clears its threshold. None had happened when this was
+written.
+
+## Trying it
+
+The site is in [`site/`](site/). It reads the contract with no wallet, and
+signs with the visitor's own wallet for anything that spends.
+
+```bash
+cd site
+npm install
+npm run dev
+```
+
+1. Open the printed address. Every page reads the live contract.
+2. To buy cover or fund the pool, connect a browser wallet. The site asks it
+   to add or switch to GenLayer Studio Next (chain id 61997).
+3. The wallet needs GEN on Studio Next. The Studio at
+   `https://studio-next.genlayer.com` has a fund button next to the account
+   balance.
+4. Buy cover on **Buy Cover**. When a qualifying outage happens, claim it on
+   **My Cover** by picking the incident; the site previews the verdict before
+   you sign.
 
 ## Known limits, stated rather than hidden
 
@@ -241,7 +293,8 @@ contracts/peril_bundle.py   generated, the file that deploys
 deploy/build_bundle.py      inlines the modules, strips comments for the gas cap
 deploy/price_table.py       derives the price table from published history
 deploy/price_table.json     the raw evidence behind the table
-test/                       131 tests and real status page fixtures
+test/                       tests and real status page fixtures
+site/                       the front end, reading and writing the live contract
 docs/UI_BRIEF.md            what the front end reads, does and shows
 next/arc/                   PAUSED: USDC payouts on Arc, not deployed, not tested
 ```

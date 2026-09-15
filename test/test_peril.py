@@ -143,12 +143,13 @@ def test_state_is_written_before_value_moves():
 def test_payment_uses_the_evm_path():
     """
     gl.get_contract_at(...).emit_transfer never delivered to a plain wallet
-    on Bradbury (tested 2026-09-11); the EVM interface did.
+    on Bradbury (tested 2026-09-11); the EVM interface did, and did again on
+    Studio Next (2026-09-15).
     """
     fn = module_function("_pay")
     code = "\n".join(ast.unparse(stmt) for stmt in fn.body[1:])  # skip docstring
     assert "_Wallet(to).emit_transfer" in code
-    assert "get_contract_at" not in code
+    assert "get_contract_at" not in code and "get_at" not in code
 
 
 def test_the_transfer_settles_on_finalisation():
@@ -289,12 +290,12 @@ def test_closing_waits_for_the_window():
 
 def test_the_clock_comes_from_the_transaction_not_the_machine():
     """
-    `gl.message_raw['datetime']` is part of the message, so every validator
+    `gl.message.raw['datetime']` is part of the message, so every validator
     in a round reads the same value. A machine clock differs between them
     and the round would never agree.
     """
     body = SOURCE.read_text(encoding="utf-8")
-    assert "gl.message_raw[\"datetime\"]" in body or "gl.message_raw['datetime']" in body
+    assert "gl.message.raw[\"datetime\"]" in body or "gl.message.raw['datetime']" in body
     assert "time.time()" not in body and "datetime.now" not in body
 
 
@@ -325,13 +326,36 @@ def test_the_bundle_has_no_local_imports():
 
 def test_the_runner_header_stands_alone():
     """
-    GenVM reads every leading comment line as one runner header. A second
-    comment line deployed on chain as invalid_contract, "trailing
+    GenVM reads the leading comment lines as the runner header. On Bradbury
+    a stray comment line under it deployed as invalid_contract, "trailing
     characters at line 1 column 84", while passing lint and local tests.
+    The v0.3 header is the version line, then Depends, then code.
     """
     lines = BUNDLE.read_text(encoding="utf-8").split("\n")
-    assert lines[0].startswith('# { "Depends": "py-genlayer:')
-    assert not lines[1].lstrip().startswith("#")
+    assert lines[0] == "# v0.3.0"
+    assert lines[1].startswith('# { "Depends": "py-genlayer:')
+    assert not lines[2].lstrip().startswith("#")
+
+
+def test_the_runner_pin_is_one_studio_next_runs():
+    """
+    Studio Next refused the pin in Studio's own examples (9b8kjy...) and
+    Bradbury's (1jb45...) with "invalid_contract runner malformed", even for
+    Studio's unmodified storage example. 5jycge... deployed and ran.
+    Checked 2026-09-15 with gen_getContractSchemaForCode and real deploys.
+    """
+    header = BUNDLE.read_text(encoding="utf-8").split("\n")[1]
+    assert "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" in header
+
+
+def test_no_v02_names_survive():
+    """
+    v0.3 renamed these, and u256 is no longer callable. Any that survived
+    would fail on chain, not here.
+    """
+    body = SOURCE.read_text(encoding="utf-8")
+    for old in ("from genlayer import *", "gl.Contract)", "allow_storage", "run_nondet_unsafe", "message_raw", "u256("):
+        assert old not in body, old
 
 
 def test_the_deploy_fits_under_the_gas_cap():

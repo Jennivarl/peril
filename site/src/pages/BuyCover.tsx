@@ -138,7 +138,7 @@ export default function BuyCover() {
             <div className="content-stretch flex gap-[8px] items-start relative shrink-0 w-full" data-name="radio-grid" role="radiogroup">
               {!covers.data && (
                 <p className="font-mono text-[#9ca3af] text-[13px] m-0">
-                  {covers.error ? `Could not read the price list: ${covers.error}` : "Reading the price list from Bradbury…"}
+                  {covers.error ? `Could not read the price list: ${covers.error}` : "Reading the price list from Studio Next…"}
                 </p>
               )}
               {list.map((c) => {
@@ -347,7 +347,7 @@ export default function BuyCover() {
             <p className="font-serif text-[#9ca3af] text-[13px] leading-[18px] m-0">Install a wallet such as MetaMask to buy cover. Everything else on this page works without one.</p>
           )}
           {walletAvailable() && !account && !problem && (
-            <p className="font-serif text-[#9ca3af] text-[13px] leading-[18px] m-0">Your wallet will ask to connect and to switch to GenLayer Bradbury.</p>
+            <p className="font-serif text-[#9ca3af] text-[13px] leading-[18px] m-0">Your wallet will ask to connect and to switch to GenLayer Studio Next.</p>
           )}
           {failure && (
             <p className="font-serif text-[#ff3b30] text-[13px] leading-[18px] m-0" role="alert">{failure}</p>

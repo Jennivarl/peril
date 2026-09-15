@@ -6,14 +6,37 @@
  * spend money.
  */
 
-export const PERIL = "0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440";
-export const RPC = "https://rpc-bradbury.genlayer.com";
-export const EXPLORER = "https://explorer-bradbury.genlayer.com";
-export const CHAIN_ID = 4221;
+export const PERIL = "0xA9df0bc18628Ea161077190515aA039026C5D00A";
+export const RPC = "https://studio-next.genlayer.com/api";
+export const EXPLORER = "https://explorer-studio-dev.genlayer.com";
+export const CHAIN_ID = 61997;
+export const CHAIN_NAME = "GenLayer Studio Next";
 export const REPO = "https://github.com/Jennivarl/peril";
+
+/**
+ * genlayer-js ships Studio's dev network with another RPC and id, so the
+ * site takes its contract settings and points them at Studio Next.
+ */
+export async function studioNext() {
+  const { studioDevnet } = await import("genlayer-js/chains");
+  return {
+    ...studioDevnet,
+    id: CHAIN_ID,
+    name: CHAIN_NAME,
+    rpcUrls: { default: { http: [RPC] } },
+    blockExplorers: { default: { name: "Studio Next Explorer", url: EXPLORER } },
+  };
+}
 
 export const addressUrl = (a: string) => `${EXPLORER}/address/${a}`;
 export const txUrl = (tx: string) => `${EXPLORER}/tx/${tx}`;
+
+/**
+ * PERIL ran on Bradbury before Studio Next. The only real settled claim so
+ * far happened there, so the pages that show it read it from Bradbury.
+ */
+export const BRADBURY_RPC = "https://rpc-bradbury.genlayer.com";
+export const bradburyTxUrl = (tx: string) => `https://explorer-bradbury.genlayer.com/tx/${tx}`;
 
 export type Cover = {
   cover: string;
@@ -77,11 +100,13 @@ let readerPromise: Promise<ReadClient> | null = null;
 function reader(): Promise<ReadClient> {
   if (!readerPromise) {
     readerPromise = (async () => {
-      const [{ createClient, createAccount }, { testnetBradbury }] =
-        await Promise.all([import("genlayer-js"), import("genlayer-js/chains")]);
+      const [{ createClient, createAccount }, chain] = await Promise.all([
+        import("genlayer-js"),
+        studioNext(),
+      ]);
       // A throwaway account: every call made with it is a view.
       return createClient({
-        chain: testnetBradbury,
+        chain: chain as never,
         account: createAccount(),
       }) as unknown as ReadClient;
     })();
@@ -211,7 +236,10 @@ export async function txStatus(txId: string): Promise<string> {
   return body?.result?.status ?? "unknown";
 }
 
-/** 1 means the call returned normally, 2 means the contract raised. */
+/**
+ * 1 means the call returned normally, 2 means the contract raised. Studio
+ * Next has no gen_getTransactionReceipt; the transaction itself carries it.
+ */
 export async function txExecution(txId: string): Promise<number | null> {
   const res = await fetch(RPC, {
     method: "POST",
@@ -219,8 +247,8 @@ export async function txExecution(txId: string): Promise<number | null> {
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: 1,
-      method: "gen_getTransactionReceipt",
-      params: [{ txId }],
+      method: "eth_getTransactionByHash",
+      params: [txId],
     }),
   });
   const body = (await res.json()) as { result?: { txExecutionResult?: number } };

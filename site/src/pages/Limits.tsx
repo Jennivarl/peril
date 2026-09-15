@@ -1,5 +1,5 @@
 import { Footer, Header, TxTracker } from "../components/Chrome";
-import { RPC, gen, readReserves, txUrl } from "../lib/chain";
+import { BRADBURY_RPC, bradburyTxUrl, gen, readReserves } from "../lib/chain";
 import { usePolled } from "../lib/hooks";
 
 /**
@@ -15,7 +15,7 @@ const REAL_CLAIM_TX = "0x86cfa95fa66a01ced087634fe78ad3b980fb092e2716053a2ff8119
 type Stamps = { Created?: number; Proposed?: number; Committed?: number; LeaderRevealed?: number; LastVote?: number };
 
 async function readStamps(): Promise<Stamps> {
-  const res = await fetch(RPC, {
+  const res = await fetch(BRADBURY_RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "gen_getTransactionReceipt", params: [{ txId: REAL_CLAIM_TX }] }),
@@ -141,7 +141,7 @@ export default function Limits() {
           title="Testnet Only"
           badge="NO ECONOMIC VALUE"
           tone="blue"
-          happen="Everything here runs on GenLayer Bradbury, a development testnet."
+          happen="Everything here runs on GenLayer Studio Next, a development network."
           responds="Pools, premiums and payouts use testnet GEN, which carries no real-world value."
           assume="Do not treat this as insurance for real infrastructure. It is an experimental release."
         />
@@ -162,7 +162,7 @@ export default function Limits() {
               );
             })}
           </div>
-          <a href={txUrl(REAL_CLAIM_TX)} target="_blank" rel="noreferrer" className="font-mono text-[#4b5563] text-[11px] hover:text-[#9ca3af]">
+          <a href={bradburyTxUrl(REAL_CLAIM_TX)} target="_blank" rel="noreferrer" className="font-mono text-[#4b5563] text-[11px] hover:text-[#9ca3af]">
             {stamps.error ? `Could not read the timestamps: ${stamps.error}` : "Timestamps from the claim's receipt on Bradbury. Finality time is the median of 48 Bradbury transactions we measured."}
           </a>
         </div>
@@ -189,8 +189,8 @@ export default function Limits() {
             {r
               ? `Live from the contract: even if every open policy paid today, the pool would pay ${gen(locked)} GEN of the ${gen(pool)} GEN it holds. The contract refuses any sale that would break this.`
               : reserves.error
-                ? "Could not read the pool from Bradbury."
-                : "Reading the pool from Bradbury…"}
+                ? "Could not read the pool from Studio Next."
+                : "Reading the pool from Studio Next…"}
           </p>
         </div>
       </div>
@@ -236,7 +236,7 @@ export default function Limits() {
             <p className="font-mono font-extrabold relative shrink-0 text-[14px] m-0">NON-ECONOMIC DEV TESTNET</p>
           </div>
           <p className="font-serif font-normal leading-[22px] not-italic relative shrink-0 text-[14px] text-white m-0">
-            You are using GenLayer Bradbury Testnet. All transactions, tokens, cover and payouts are experimental. Do not use PERIL to insure real systems or deposit anything of real value.
+            You are using GenLayer Studio Next, a development network. All transactions, tokens, cover and payouts are experimental. Do not use PERIL to insure real systems or deposit anything of real value.
           </p>
         </div>
       </div>

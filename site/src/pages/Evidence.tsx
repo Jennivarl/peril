@@ -69,7 +69,7 @@ export default function Evidence() {
           </div>
           {!live && (
             <div className="p-[16px] w-full">
-              <p className="font-mono text-[#9ca3af] text-[13px] m-0">{covers.error ? `Could not read the price list from Bradbury: ${covers.error}` : "Reading the price list from Bradbury…"}</p>
+              <p className="font-mono text-[#9ca3af] text-[13px] m-0">{covers.error ? `Could not read the price list from Studio Next: ${covers.error}` : "Reading the price list from Studio Next…"}</p>
             </div>
           )}
           {live?.map((c) => (

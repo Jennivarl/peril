@@ -255,7 +255,7 @@ export default function Pool() {
             <p className="font-serif text-[#9ca3af] text-[12px] leading-[17px] m-0" role="status">
               {"Submitted "}
               <a href={txUrl(sent)} target="_blank" rel="noreferrer" className="font-mono text-accent-text">{short(sent, 8, 6)}</a>
-              {". Shares update once the network accepts it; withdrawn GEN arrives when it finalises, about 30 minutes later."}
+              {". Shares update once the network accepts it; withdrawn GEN arrives when it finalises, about 30 seconds later."}
             </p>
           )}
         </div>
@@ -272,7 +272,7 @@ export default function Pool() {
           </div>
           {!policies.data && (
             <div className="border border-[#1e222a] border-solid p-[16px] w-full">
-              <p className="font-mono text-[#9ca3af] text-[13px] m-0">{policies.error ? `Could not read open cover: ${policies.error}` : "Reading open cover from Bradbury…"}</p>
+              <p className="font-mono text-[#9ca3af] text-[13px] m-0">{policies.error ? `Could not read open cover: ${policies.error}` : "Reading open cover from Studio Next…"}</p>
             </div>
           )}
           {policies.data && open.length === 0 && (

@@ -87,8 +87,8 @@ export default function PolicyDetail() {
               : notFound
                 ? "The contract holds no policy with this id."
                 : policy.error
-                  ? `Could not read this policy from Bradbury: ${policy.error}`
-                  : "Reading this policy from Bradbury…"}
+                  ? `Could not read this policy from Studio Next: ${policy.error}`
+                  : "Reading this policy from Studio Next…"}
           </p>
           <a href="#/" className="font-mono font-bold text-accent-text text-[13px]">BACK TO THE LEDGER</a>
         </div>
@@ -182,7 +182,7 @@ export default function PolicyDetail() {
 
                 {p.state === "paid" ? (
                   <Stage mark="✓" title="Verdict Accepted" badge="PAID" tone="accent">
-                    The validators agreed the outage qualified, and the contract marked this policy paid. On Bradbury that agreement usually lands within a few minutes of the claim.
+                    The validators agreed the outage qualified, and the contract marked this policy paid. That agreement usually lands within a few minutes of the claim.
                   </Stage>
                 ) : tried ? (
                   <Stage mark="×" title="Claim Refused" badge="COVER OPEN" tone="blue">
@@ -199,7 +199,7 @@ export default function PolicyDetail() {
                 <Stage mark={p.state === "paid" ? "⧗" : "–"} title="GEN in the Holder's Wallet" badge={p.state === "paid" ? "ON FINALITY" : "NOT DUE"} tone={p.state === "paid" ? "blue" : "grey"}>
                   {p.state === "paid" ? (
                     <>
-                      {"The payout is sent when the claim's transaction finalises, which on Bradbury has taken about 30 minutes after acceptance. "}
+                      {"The payout is sent when the claim's transaction finalises, which on Studio Next is a 30 second window after acceptance. "}
                       <a href={addressUrl(p.holder)} target="_blank" rel="noreferrer" className="text-accent-text">Check the holder&apos;s balance on the explorer.</a>
                     </>
                   ) : (

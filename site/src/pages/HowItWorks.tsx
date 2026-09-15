@@ -1,5 +1,5 @@
 import { Footer, Header, TxTracker } from "../components/Chrome";
-import { RPC, hours, readCovered, short, txUrl } from "../lib/chain";
+import { BRADBURY_RPC, bradburyTxUrl, hours, readCovered, short } from "../lib/chain";
 import { usePolled } from "../lib/hooks";
 
 /**
@@ -50,7 +50,7 @@ async function readExample(): Promise<{ record: Record5; live: boolean }> {
 type Round = { validators: string[]; votes: number[]; leader: number; seconds: number | null };
 
 async function readRound(): Promise<Round> {
-  const res = await fetch(RPC, {
+  const res = await fetch(BRADBURY_RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "gen_getTransactionReceipt", params: [{ txId: REAL_CLAIM_TX }] }),
@@ -126,7 +126,7 @@ export default function HowItWorks() {
           <StageCard n="02" title="Incident Query">{"When an outage happens, anyone makes a claim with its incident id. Each validator fetches that one record from the provider's status API."}</StageCard>
           <StageCard n="03" title="Calculate Duration">The contract subtracts start from end in whole minutes, rounded down, and checks the provider rated it major or critical.</StageCard>
           <StageCard n="04" title="Consensus Settlement">{`Validators vote on whether the leader's reading matches their own. On the real claim below, all ${round.data?.votes.length ?? 5} votes were in ${round.data?.seconds ?? 12} seconds after it was sent.`}</StageCard>
-          <StageCard n="05" title={`Disburse & Finalize`}>{"A qualifying claim is marked paid when it is accepted. The GEN reaches the holder's wallet when the transaction finalises, about 30 minutes later on Bradbury."}</StageCard>
+          <StageCard n="05" title={`Disburse & Finalize`}>{"A qualifying claim is marked paid when it is accepted. The GEN reaches the holder's wallet when the transaction finalises, after a 30 second finality window on Studio Next."}</StageCard>
         </div>
       </div>
 
@@ -179,7 +179,7 @@ export default function HowItWorks() {
             })}
           </div>
           {round.data && (
-            <a href={txUrl(REAL_CLAIM_TX)} target="_blank" rel="noreferrer" className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start justify-center p-[12px] relative rounded-[6px] shrink-0 w-full no-underline">
+            <a href={bradburyTxUrl(REAL_CLAIM_TX)} target="_blank" rel="noreferrer" className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start justify-center p-[12px] relative rounded-[6px] shrink-0 w-full no-underline">
               <span className="font-mono font-extrabold leading-[normal] text-accent-text text-[12px] whitespace-nowrap">
                 {agree} OF {round.data.votes.length} AGREE · VERDICT: UNDER THRESHOLD · VIEW TRANSACTION
               </span>

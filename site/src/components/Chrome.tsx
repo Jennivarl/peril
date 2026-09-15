@@ -51,7 +51,7 @@ export function Header({ active }: { active: string }) {
             <span className="absolute block inset-0 max-w-none size-full rounded-full bg-accent-line peril-pulse" />
           </div>
           <p className="[word-break:break-word] font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[11px] whitespace-nowrap">
-            Chain ID: 4221 | GenLayer Bradbury
+            Chain ID: 61997 | GenLayer Studio Next
           </p>
         </div>
       </div>
@@ -182,7 +182,7 @@ export function Footer() {
   return (
     <div className="[word-break:break-word] bg-[#121418] border-[#1e222a] border-solid border-t content-stretch flex font-mono font-normal items-center justify-between leading-[normal] px-[40px] py-[32px] relative shrink-0 text-[12px] w-full whitespace-nowrap" data-name="footer">
       <p className="relative shrink-0 text-[#9ca3af] m-0">
-        PERIL Parametric Downtime Protection © 2026. GenLayer Bradbury Testnet Deployment.{" "}
+        PERIL Parametric Downtime Protection © 2026. GenLayer Studio Next Deployment.{" "}
         <a href={REPO} target="_blank" rel="noreferrer" className="text-[#9ca3af] underline">Source</a>
       </p>
       <a href={addressUrl(PERIL)} target="_blank" rel="noreferrer" className="relative shrink-0 text-[#4b5563] no-underline hover:text-[#9ca3af]">

@@ -1,4 +1,4 @@
-import { CHAIN_ID, PERIL, RPC } from "./chain";
+import { CHAIN_ID, CHAIN_NAME, EXPLORER, PERIL, RPC, studioNext } from "./chain";
 
 /**
  * Signing, from the visitor's own wallet.
@@ -8,9 +8,6 @@ import { CHAIN_ID, PERIL, RPC } from "./chain";
  * patience, which on this network is shorter than the chain's, and reports
  * failures that later turn out to have succeeded. The caller polls instead.
  */
-
-/** genlayer-js defaults to 3. Every timed-out write in this project ran out of rotations. */
-export const MAX_ROTATIONS = 8;
 
 const CHAIN_ID_HEX = `0x${CHAIN_ID.toString(16)}`;
 
@@ -70,7 +67,7 @@ export function onAccountsChanged(handler: (account: string | null) => void): ()
   return () => window.ethereum?.removeListener?.("accountsChanged", wrapped);
 }
 
-/** Move the wallet to Bradbury, adding it the first time (4902 is expected then). */
+/** Move the wallet to Studio Next, adding it the first time (4902 is expected then). */
 export async function ensureChain(): Promise<void> {
   const id = (await provider().request({ method: "eth_chainId" })) as string;
   if (parseInt(id, 16) === CHAIN_ID) return;
@@ -86,10 +83,10 @@ export async function ensureChain(): Promise<void> {
       params: [
         {
           chainId: CHAIN_ID_HEX,
-          chainName: "GenLayer Bradbury Testnet",
+          chainName: CHAIN_NAME,
           rpcUrls: [RPC],
           nativeCurrency: { name: "GEN Token", symbol: "GEN", decimals: 18 },
-          blockExplorerUrls: ["https://explorer-bradbury.genlayer.com"],
+          blockExplorerUrls: [EXPLORER],
         },
       ],
     });
@@ -99,23 +96,26 @@ export async function ensureChain(): Promise<void> {
 async function write(functionName: string, args: unknown[], value = 0n): Promise<string> {
   await ensureChain();
   const account = (await currentAccount()) ?? (await connect());
-  const [{ createClient }, { testnetBradbury }] = await Promise.all([
-    import("genlayer-js"),
-    import("genlayer-js/chains"),
-  ]);
+  const [{ createClient }, chain] = await Promise.all([import("genlayer-js"), studioNext()]);
   const client = createClient({
-    chain: testnetBradbury,
+    chain: chain as never,
     account: account as `0x${string}`,
     provider: provider() as never,
   });
+  const address = PERIL as `0x${string}`;
+  // Every argument here is a string, number or bigint, all of which
+  // genlayer-js encodes; its calldata type is not exported by name.
+  const callArgs = args as never[];
+  // Studio Next charges each transaction up front, and a call that pays a
+  // wallet must also reserve a fee for that payment or it fails with "fee
+  // no_matching_allocation". Simulating the call first returns both.
+  const est = await client.estimateTransactionFeesForWrite({ address, functionName, args: callArgs, value });
   const hash = await client.writeContract({
-    address: PERIL as `0x${string}`,
+    address,
     functionName,
-    // Every argument here is a string, number or bigint, all of which
-    // genlayer-js encodes; its calldata type is not exported by name.
-    args: args as never[],
+    args: callArgs,
     value,
-    consensusMaxRotations: MAX_ROTATIONS,
+    fees: { distribution: est.distribution, messageAllocations: est.messageAllocations, feeValue: est.feeValue },
   });
   return String(hash);
 }
