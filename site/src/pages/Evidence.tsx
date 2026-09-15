@@ -59,7 +59,7 @@ export default function Evidence() {
           </div>
         </div>
 
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col items-start overflow-clip relative rounded-[12px] shrink-0 w-full" data-name="matrix-table-box">
+        <div className="peril-glass border border-solid content-stretch flex flex-col items-start overflow-clip relative rounded-[12px] shrink-0 w-full" data-name="matrix-table-box">
           <div className="bg-[#14171f] border-[#1e222a] border-b border-solid content-stretch flex font-mono font-bold items-start leading-[normal] p-[16px] relative shrink-0 text-[#9ca3af] text-[12px] w-full">
             <p className="relative shrink-0 w-[220px] m-0">PROVIDER / HOST</p>
             <p className="relative shrink-0 text-center w-[120px] m-0">12M SERIOUS</p>
@@ -117,7 +117,7 @@ export default function Evidence() {
             ["03", "Three-Phantom-Outage Pad", "Three extra outages are added to every count, so a clean year is never priced as a guarantee. Three is the usual upper bound when none were seen."],
             ["04", "Keep Half, Cap at 20x", "The multiple is the largest whole number that keeps the expected payout under half the premium, never above 20x. Anything under 2x is not sold."],
           ].map(([n, title, body]) => (
-            <div key={n} className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[24px] relative rounded-[12px]">
+            <div key={n} className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[24px] relative rounded-[12px]">
               <p className="font-mono font-bold leading-[normal] text-accent-text text-[13px] m-0">[{n}]</p>
               <p className="font-serif font-bold leading-[normal] not-italic text-[16px] text-white m-0">{title}</p>
               <p className="font-serif font-normal leading-[20px] not-italic text-[#9ca3af] text-[13px] m-0">{body}</p>
@@ -174,7 +174,7 @@ export default function Evidence() {
       </div>
 
       <div className="content-stretch flex flex-col items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="provenance-section">
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[20px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[20px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full">
           <div className="content-stretch flex items-center justify-between relative shrink-0 w-full gap-[16px]">
             <p className="font-serif font-extrabold leading-[normal] not-italic text-[18px] text-white m-0">Technical Data Provenance</p>
             <div className={`${matches === null ? "bg-[#1c1f26] border-[#1e222a] text-[#9ca3af]" : matches ? "bg-accent-tint border-accent-line text-accent-text" : "bg-[rgba(255,59,48,0.12)] border-[#ff3b30] text-[#ff3b30]"} border border-solid flex px-[10px] py-[4px] rounded-[4px]`}>

@@ -77,7 +77,7 @@ function utc(iso: string) {
 
 function StageCard({ n, title, children }: { n: string; title: string; children: string }) {
   return (
-    <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name={`step-card-${n}`}>
+    <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name={`step-card-${n}`}>
       <div className="content-stretch flex items-center justify-between leading-[normal] relative shrink-0 w-full whitespace-nowrap">
         <p className="font-serif font-extrabold not-italic relative shrink-0 text-[14px] text-white m-0">{title}</p>
         <p className="font-mono font-normal relative shrink-0 text-accent-text text-[12px] m-0">[{n}]</p>
@@ -131,7 +131,7 @@ export default function HowItWorks() {
       </div>
 
       <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="anatomy-consensus">
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="json-anatomy">
+        <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="json-anatomy">
           <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-white w-full m-0">Downtime API Field Anatomy</p>
           <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">
             {example.data?.live
@@ -153,7 +153,7 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="consensus-visual">
+        <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="consensus-visual">
           <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-white w-full m-0">Validator Convergence Mechanism</p>
           <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">
             {"A real round, from the claim settled on github-w38 against GitHub incident 0rn90wk115q9. Each validator fetched the incident itself and voted on whether the leader's reading matched."}
@@ -190,7 +190,7 @@ export default function HowItWorks() {
 
       <div className="content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="case-study-section">
         <p className="font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">Fully Worked Case Study: Incident {EXAMPLE.id}</p>
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full" data-name="case-study-box">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full" data-name="case-study-box">
           <div className="content-stretch flex items-center justify-between relative shrink-0 w-full gap-[16px]">
             <div className="content-stretch flex flex-col gap-[4px] items-start leading-[normal] relative shrink-0">
               <p className="font-serif font-extrabold not-italic relative shrink-0 text-[22px] text-white m-0">{rec?.name ?? "…"}</p>

@@ -56,12 +56,12 @@ function Row({ label, value, tone = "text-white" }: { label: string; value: stri
 }
 
 export default function Pool() {
-  const reserves = usePolled(readReserves, 20000);
-  const policies = usePolled(readPolicies, 30000);
+  const reserves = usePolled(readReserves, 60000);
+  const policies = usePolled(readPolicies, 60000);
   const { account } = useAccount();
   const funder = queryFunder() ?? account;
-  const position = usePolled(() => (funder ? readSharesOf(funder) : Promise.resolve(null)), 20000, [funder]);
-  const balance = usePolled(() => (account ? readBalance(account) : Promise.resolve(null)), 30000, [account]);
+  const position = usePolled(() => (funder ? readSharesOf(funder) : Promise.resolve(null)), 60000, [funder]);
+  const balance = usePolled(() => (account ? readBalance(account) : Promise.resolve(null)), 60000, [account]);
 
   const r = reserves.data;
   const pool = r ? BigInt(r.pool) : 0n;
@@ -137,7 +137,7 @@ export default function Pool() {
           <StatBox label="UTILIZATION RATE" value={r ? `${lockedShare.toFixed(2)}%` : unknown} sub="Share of the pool backing open cover" />
         </div>
 
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[12px] items-start p-[20px] relative rounded-[12px] shrink-0 w-full" data-name="gauge-box">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[12px] items-start p-[20px] relative rounded-[12px] shrink-0 w-full" data-name="gauge-box">
           <div className="content-stretch flex flex-wrap gap-[8px] items-start justify-between relative shrink-0 w-full">
             <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
               <div className="relative shrink-0 size-[8px]"><span className="absolute block inset-0 max-w-none size-full rounded-full bg-accent-line peril-pulse" /></div>
@@ -164,7 +164,7 @@ export default function Pool() {
 
       <div className="content-stretch flex gap-[24px] items-start pb-[48px] px-[120px] relative shrink-0 w-full" data-name="pool-interactive">
         <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-start min-w-px relative" data-name="forms-grid">
-          <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[24px] relative rounded-[12px]" data-name="fund-card">
+          <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[24px] relative rounded-[12px]" data-name="fund-card">
             <p className="font-mono font-extrabold leading-[normal] relative shrink-0 text-accent-text text-[16px] w-full m-0">[+] Deposit Capital</p>
             <p className="font-serif font-normal leading-[normal] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">
               Fund the pool so it can back more cover, and take a share of every premium that never pays out.
@@ -194,7 +194,7 @@ export default function Pool() {
             {fundProblem && amount.trim() !== "" && <p className="font-serif text-[#ff3b30] text-[11px] m-0">{fundProblem}</p>}
           </div>
 
-          <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[24px] relative rounded-[12px]" data-name="withdraw-card">
+          <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[24px] relative rounded-[12px]" data-name="withdraw-card">
             <p className="font-mono font-extrabold leading-[normal] relative shrink-0 text-[#ff3b30] text-[16px] w-full m-0">[-] Withdraw Capital</p>
             <p className="font-serif font-normal leading-[normal] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">
               Redeem shares for GEN. Only funds not backing open cover can be withdrawn.
@@ -229,7 +229,7 @@ export default function Pool() {
           </div>
         </div>
 
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[20px] items-start p-[32px] relative rounded-[12px] shrink-0 w-[440px]" data-name="position-sidebar">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[20px] items-start p-[32px] relative rounded-[12px] shrink-0 w-[440px]" data-name="position-sidebar">
           <p className="font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[20px] text-white w-full m-0">Your Funder Position</p>
           <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex items-start p-[12px] relative rounded-[6px] shrink-0 w-full">
             <p className="flex-[1_0_0] font-mono font-normal leading-[normal] min-w-px text-accent-text text-[13px] m-0">
@@ -263,7 +263,7 @@ export default function Pool() {
 
       <div className="content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="exposure-section">
         <p className="font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">{`Active Pool Risk & Exposure Breakdown`}</p>
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full" data-name="table-box">
+        <div className="peril-glass border border-solid content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full" data-name="table-box">
           <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex font-serif font-semibold items-start leading-[normal] not-italic p-[16px] relative shrink-0 text-[#9ca3af] text-[13px] w-full">
             {["POLICY ID", "SERVICE", "UTC WINDOW", "LOCKED RESERVES", "THRESHOLD"].map((h) => (
               <p key={h} className="flex-[1_0_0] min-w-px relative m-0">{h}</p>

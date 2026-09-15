@@ -40,7 +40,7 @@ const OUTCOME: Record<string, string> = {
 
 function Card({ n, label, value }: { n: number; label: string; value: string }) {
   return (
-    <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start min-w-px p-[16px] relative rounded-[8px]" data-name={`param-${n}`}>
+    <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start min-w-px p-[16px] relative rounded-[8px]" data-name={`param-${n}`}>
       <p className="font-serif font-normal not-italic relative shrink-0 text-[#9ca3af] text-[12px] m-0">{label}</p>
       <p className="font-mono font-bold relative shrink-0 text-[18px] text-white m-0">{value}</p>
     </div>
@@ -69,7 +69,7 @@ function Stage({ mark, title, badge, tone, children }: { mark: string; title: st
 
 export default function PolicyDetail() {
   const id = queryId();
-  const policy = usePolled(() => readPolicy(id), 30000, [id]);
+  const policy = usePolled(() => readPolicy(id), 60000, [id]);
   const p = policy.data;
   const notFound = !p && policy.error && /KeyError|not found/i.test(policy.error);
 
@@ -127,7 +127,7 @@ export default function PolicyDetail() {
                   <Card n={3} label="Outage Threshold" value={`${p.threshold_minutes} min (${hours(p.threshold_minutes)})`} />
                 </div>
 
-                <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[20px] items-start p-[24px] relative rounded-[12px] shrink-0 w-full" data-name="evidence-panel">
+                <div className="peril-glass border border-solid content-stretch flex flex-col gap-[20px] items-start p-[24px] relative rounded-[12px] shrink-0 w-full" data-name="evidence-panel">
                   <p className="font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap m-0">{`Evidence & Measurement`}</p>
                   {!tried ? (
                     <div className="flex flex-col gap-[10px] items-start">
@@ -177,7 +177,7 @@ export default function PolicyDetail() {
                 </div>
               </div>
 
-              <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-[440px]" data-name="detail-sidebar">
+              <div className="peril-glass border border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-[440px]" data-name="detail-sidebar">
                 <p className="font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[18px] text-white whitespace-nowrap m-0">Two-Stage Payout</p>
 
                 {p.state === "paid" ? (

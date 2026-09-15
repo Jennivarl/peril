@@ -133,14 +133,37 @@ function plain(value: unknown): unknown {
   return value;
 }
 
+/**
+ * Studio Next's RPC allows 30 requests a minute, and answers past that with
+ * "Rate limit exceeded". The header and a page often want the same read, and
+ * people click between pages, so reads are shared: one request per call in
+ * flight, reused for a short while. The price list is fixed at deployment,
+ * so it is read once per visit. A failed read is never reused.
+ */
+const FRESH_MS: Record<string, number> = { covered: Infinity };
+const DEFAULT_FRESH_MS = 15000;
+const reads = new Map<string, { at: number; value: Promise<unknown> }>();
+
 async function view<T>(functionName: string, args: unknown[] = []): Promise<T> {
-  const c = await reader();
-  const raw = await c.readContract({
-    address: PERIL as `0x${string}`,
-    functionName,
-    args,
+  const key = `${functionName}:${JSON.stringify(args)}`;
+  const hit = reads.get(key);
+  if (hit && Date.now() - hit.at < (FRESH_MS[functionName] ?? DEFAULT_FRESH_MS)) {
+    return hit.value as Promise<T>;
+  }
+  const value = (async () => {
+    const c = await reader();
+    const raw = await c.readContract({
+      address: PERIL as `0x${string}`,
+      functionName,
+      args,
+    });
+    return plain(raw) as T;
+  })();
+  reads.set(key, { at: Date.now(), value });
+  value.catch(() => {
+    if (reads.get(key)?.value === value) reads.delete(key);
   });
-  return plain(raw) as T;
+  return value;
 }
 
 /** Wei amounts can exceed 2^53, so they must stay strings. */
@@ -212,14 +235,22 @@ export async function readBalance(address: string): Promise<string> {
 
 /** The states a write passes through, in order, as the header tracker shows them. */
 export const LIFECYCLE = [
-  "Pending",
-  "Proposing",
-  "Committing",
-  "Revealing",
-  "LeaderRevealing",
-  "Accepted",
-  "Finalized",
+  "PENDING",
+  "PROPOSING",
+  "COMMITTING",
+  "REVEALING",
+  "LEADER_REVEALING",
+  "ACCEPTED",
+  "FINALIZED",
 ] as const;
+
+/**
+ * Studio Next reports statuses in upper snake case ("FINALIZED"); Bradbury
+ * used "Finalized" and "LeaderRevealing". Both come out as the former.
+ */
+export function normalizeStatus(status: string): string {
+  return status.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();
+}
 
 export async function txStatus(txId: string): Promise<string> {
   const res = await fetch(RPC, {
@@ -233,7 +264,7 @@ export async function txStatus(txId: string): Promise<string> {
     }),
   });
   const body = (await res.json()) as { result?: { status?: string } };
-  return body?.result?.status ?? "unknown";
+  return body?.result?.status ? normalizeStatus(body.result.status) : "UNKNOWN";
 }
 
 /**

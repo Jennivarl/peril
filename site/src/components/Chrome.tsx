@@ -20,7 +20,7 @@ const TABS: { path: string; label: string; name: string }[] = [
 ];
 
 export function Header({ active }: { active: string }) {
-  const reserves = usePolled(readReserves, 30000);
+  const reserves = usePolled(readReserves, 60000);
   const { account, connectWallet } = useAccount();
   const [walletProblem, setWalletProblem] = useState<string | null>(null);
 
@@ -104,12 +104,30 @@ export function Header({ active }: { active: string }) {
   );
 }
 
-const STEP_LABEL: Record<string, string> = {
-  LeaderRevealing: "LeaderReveal",
-  Finalized: "Finalize",
+/** Each stage in plain words, shown when a node is hovered or focused. */
+const STEPS: Record<(typeof LIFECYCLE)[number], { label: string; hint: string }> = {
+  PENDING: { label: "Pending", hint: "Submitted and waiting for a leader to pick it up." },
+  PROPOSING: { label: "Propose", hint: "The leader runs the call and proposes a result." },
+  COMMITTING: { label: "Commit", hint: "Validators run it themselves and commit their votes." },
+  REVEALING: { label: "Reveal", hint: "Validators reveal their votes." },
+  LEADER_REVEALING: { label: "Leader", hint: "The leader reveals its result." },
+  ACCEPTED: { label: "Accepted", hint: "A majority agreed. State is updated; it can still be appealed." },
+  FINALIZED: { label: "Finalized", hint: "The appeal window passed. Final, and any payout is sent." },
 };
 
-/** The consensus lifecycle of the last transaction this browser submitted. */
+/** States that are not on the happy path, shown as a warning pill instead of a node. */
+const OFF_PATH_TONE: Record<string, string> = {
+  CANCELED: "border-[#ff3b30] text-[#ff3b30] bg-[rgba(255,59,48,0.08)]",
+  UNDETERMINED: "border-[#ff3b30] text-[#ff3b30] bg-[rgba(255,59,48,0.08)]",
+  LEADER_TIMEOUT: "border-[#8ab4f8] text-[#8ab4f8] bg-[rgba(138,180,248,0.08)]",
+  VALIDATORS_TIMEOUT: "border-[#8ab4f8] text-[#8ab4f8] bg-[rgba(138,180,248,0.08)]",
+  APPEAL_COMMITTING: "border-[#8ab4f8] text-[#8ab4f8] bg-[rgba(138,180,248,0.08)]",
+  APPEAL_REVEALING: "border-[#8ab4f8] text-[#8ab4f8] bg-[rgba(138,180,248,0.08)]",
+};
+
+const TERMINAL = new Set(["FINALIZED", "CANCELED", "UNDETERMINED"]);
+
+/** The consensus lifecycle of the last transaction this browser submitted, as read from the chain. */
 export function TxTracker() {
   const tx = useLastTx();
   const [status, setStatus] = useState<string | null>(null);
@@ -124,11 +142,11 @@ export function TxTracker() {
         const s = await txStatus(tx);
         if (!alive) return;
         setStatus(s);
-        if (s === "Finalized" || s === "Canceled" || s === "Undetermined") return;
+        if (TERMINAL.has(s)) return;
       } catch {
         // A failed poll is not a failed transaction. Keep asking.
       }
-      if (alive) timer = setTimeout(run, 5000);
+      if (alive) timer = setTimeout(run, 10000);
     };
     run();
     return () => {
@@ -138,42 +156,64 @@ export function TxTracker() {
   }, [tx]);
 
   const at = status ? LIFECYCLE.indexOf(status as (typeof LIFECYCLE)[number]) : -1;
+  const offPath = status && at < 0 && status !== "UNKNOWN" ? status : null;
+  const pill = !tx
+    ? { text: "IDLE", tone: "border-[rgba(255,255,255,0.1)] text-[#4b5563] bg-transparent" }
+    : offPath
+      ? { text: offPath.replace(/_/g, " "), tone: OFF_PATH_TONE[offPath] ?? "border-[#4b5563] text-[#9ca3af] bg-transparent" }
+      : status === "FINALIZED"
+        ? { text: "FINALIZED", tone: "border-accent-line text-accent-text bg-accent-tint" }
+        : at >= 0
+          ? { text: "IN PROGRESS", tone: "border-accent-line text-accent-text bg-accent-tint" }
+          : { text: "CHECKING", tone: "border-[#4b5563] text-[#9ca3af] bg-transparent" };
 
   return (
-    <div className="bg-[#090a0c] border-[#1e222a] border-b border-solid content-stretch flex items-center justify-between px-[40px] py-[10px] relative shrink-0 w-full" data-name="tx-tracker">
-      <div className="[word-break:break-word] content-stretch flex font-mono font-normal gap-[8px] items-center leading-[normal] relative shrink-0 text-[11px] whitespace-nowrap" data-name="tracker-left">
-        <p className="relative shrink-0 text-[#9ca3af] uppercase m-0">CONSENSUS LIFECYCLE:</p>
+    <div className="bg-[rgba(9,10,12,0.85)] border-[rgba(255,255,255,0.06)] border-b border-solid content-stretch flex items-center justify-between px-[40px] py-[12px] relative shrink-0 w-full" data-name="tx-tracker">
+      <div className="[word-break:break-word] content-stretch flex font-mono font-normal gap-[10px] items-center leading-[normal] relative shrink-0 text-[11px] whitespace-nowrap" data-name="tracker-left">
+        <p className="relative shrink-0 text-[#9ca3af] uppercase m-0">Consensus lifecycle</p>
+        <span className={`${pill.tone} border border-solid px-[8px] py-[2px] rounded-[100px] text-[10px] tracking-[0.04em]`} data-name="status-pill">
+          {pill.text}
+        </span>
         {tx ? (
-          <a href={txUrl(tx)} target="_blank" rel="noreferrer" className="relative shrink-0 text-accent-text no-underline">
+          <a href={txUrl(tx)} target="_blank" rel="noreferrer" className="relative shrink-0 text-accent-text no-underline hover:underline" title="Open this transaction in the explorer">
             {short(tx, 6, 4)}
-            {status && at < 0 ? ` (${status})` : ""}
           </a>
         ) : (
           <p className="relative shrink-0 text-[#4b5563] m-0">no transaction from this browser yet</p>
         )}
       </div>
-      <div className="content-stretch flex gap-[16px] items-center relative shrink-0" data-name="tracker-steps">
+      <ol className="content-stretch flex items-center list-none m-0 p-0 relative shrink-0" data-name="tracker-steps">
         {LIFECYCLE.map((step, i) => {
-          const done = at >= 0 && i < at;
+          const reached = at >= 0 && i <= at;
           const current = at >= 0 && i === at;
-          const dot = done || current ? "bg-accent-line" : "bg-[#4b5563]";
-          const label = current ? "text-accent-text" : done ? "text-[#9ca3af]" : "text-[#4b5563]";
-          const connector = done || current ? "bg-accent" : "bg-[#15171e]";
+          const { label, hint } = STEPS[step];
           return (
-            <div key={step} className={`content-stretch flex ${i ? "gap-[8px]" : ""} items-center relative shrink-0`} data-name={`step-${i}`}>
-              {i > 0 && <div className={`${connector} h-px relative shrink-0 w-[16px]`} data-name="step-connector" />}
-              <div className="content-stretch flex gap-[4px] items-center relative shrink-0" data-name="step-dot-wrap">
-                <div className="relative shrink-0 size-[6px]" data-name="step-dot">
-                  <span className={`absolute block inset-0 max-w-none size-full rounded-full ${dot} ${current && step !== "Finalized" ? "peril-pulse" : ""}`} />
-                </div>
-                <p className={`[word-break:break-word] font-mono font-normal leading-[normal] relative shrink-0 ${label} text-[11px] whitespace-nowrap m-0`}>
-                  {STEP_LABEL[step] ?? step}
-                </p>
-              </div>
-            </div>
+            <li key={step} className="content-stretch flex items-center relative shrink-0" data-name={`step-${i}`}>
+              {i > 0 && (
+                <span
+                  className={`block h-[2px] w-[28px] rounded-full ${reached ? "bg-[linear-gradient(90deg,#ff9500,#ffc56b)]" : "bg-[rgba(255,255,255,0.08)]"}`}
+                  aria-hidden="true"
+                />
+              )}
+              <span
+                tabIndex={0}
+                title={hint}
+                aria-current={current ? "step" : undefined}
+                className="group content-stretch flex flex-col gap-[4px] items-center px-[6px] relative rounded-[6px] outline-none focus-visible:ring-1 focus-visible:ring-[#ff9500]"
+              >
+                <span
+                  className={`block rounded-full size-[10px] border border-solid transition-colors ${
+                    reached ? "bg-accent border-accent-line peril-node-on" : "bg-[#0d1117] border-[rgba(255,255,255,0.18)] group-hover:border-[rgba(255,149,0,0.6)]"
+                  } ${current && step !== "FINALIZED" ? "peril-pulse" : ""}`}
+                />
+                <span className={`font-mono text-[10px] leading-none whitespace-nowrap ${current ? "text-accent-text" : reached ? "text-[#9ca3af]" : "text-[#4b5563] group-hover:text-[#9ca3af]"}`}>
+                  {label}
+                </span>
+              </span>
+            </li>
           );
         })}
-      </div>
+      </ol>
     </div>
   );
 }

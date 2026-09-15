@@ -72,5 +72,3 @@ export function priceTier(seen: number) {
 
 export const serviceName = (cover: string) => SERVICE_NAMES[cover] ?? cover;
 
-/** The three-letter tile shown on each service card. */
-export const serviceTile = (cover: string) => cover.slice(0, 3).toUpperCase();

@@ -52,3 +52,76 @@ button:disabled {
 .peril-pulse {
   animation: peril-pulse 1.6s ease-in-out infinite;
 }
+
+/* Glows are wider than their sections; never let them scroll the page sideways. */
+#root {
+  overflow-x: clip;
+}
+
+/*
+ * Glass cards. Nearly transparent, so the amber glows behind a section show
+ * through the blur; the page ground stays #090a0c, so text contrast on a
+ * card is unchanged.
+ */
+.peril-glass {
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* A soft amber light behind a section. Decorative only. */
+.peril-glow {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 149, 0, 0.16) 0%, rgba(255, 149, 0, 0) 70%);
+  filter: blur(80px);
+  z-index: 0;
+}
+
+/* Bento tiles lift slightly and pick up the accent on hover. */
+.peril-lift {
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.peril-lift:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 149, 0, 0.45);
+}
+
+/* Free share of the pool, drawn under the capacity figure. */
+.peril-capacity {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 9999px;
+  height: 4px;
+  overflow: hidden;
+  width: 220px;
+}
+
+.peril-capacity-fill {
+  background: linear-gradient(90deg, #ff9500 0%, #ffc56b 100%);
+  border-radius: 9999px;
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+/* Consensus stepper: nodes the transaction has reached glow. */
+.peril-node-on {
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.15), 0 0 10px rgba(255, 149, 0, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peril-pulse {
+    animation: none;
+  }
+
+  .peril-lift,
+  .peril-capacity-fill {
+    transition: none;
+  }
+
+  .peril-lift:hover {
+    transform: none;
+  }
+}

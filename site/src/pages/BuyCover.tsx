@@ -32,12 +32,12 @@ function queryCover(): string | null {
 }
 
 const inputBox =
-  "bg-[#121418] border border-[#1e222a] border-solid rounded-[6px] w-full p-[12px] font-mono font-normal text-[14px] text-white outline-none focus:border-accent-line [color-scheme:dark]";
+  "peril-glass border border-solid rounded-[6px] w-full p-[12px] font-mono font-normal text-[14px] text-white outline-none focus:border-accent-line [color-scheme:dark]";
 
 export default function BuyCover() {
   const covers = usePolled(readCovered, 0);
-  const reserves = usePolled(readReserves, 20000);
-  const ids = usePolled(readPolicyIds, 20000);
+  const reserves = usePolled(readReserves, 60000);
+  const ids = usePolled(readPolicyIds, 60000);
   const { account } = useAccount();
 
   const today = todayUtc();
@@ -243,7 +243,7 @@ export default function BuyCover() {
             <div className="content-stretch flex gap-[16px] items-center relative shrink-0 w-full" data-name="premium-calculator">
               <label className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px relative">
                 <span className="font-serif font-normal not-italic relative shrink-0 text-[#9ca3af] text-[12px]">Premium Amount (GEN)</span>
-                <span className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex gap-[8px] items-center p-[12px] relative rounded-[6px] shrink-0 w-full focus-within:border-accent-line">
+                <span className="peril-glass border border-solid content-stretch flex gap-[8px] items-center p-[12px] relative rounded-[6px] shrink-0 w-full focus-within:border-accent-line">
                   <input
                     inputMode="decimal"
                     value={premium}
@@ -288,7 +288,7 @@ export default function BuyCover() {
           </div>
         </div>
 
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-[440px]" data-name="summary-panel">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-[440px]" data-name="summary-panel">
           <p className="[word-break:break-word] font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[20px] text-white whitespace-nowrap m-0">Review Proposal</p>
           <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex items-start p-[20px] relative rounded-[8px] shrink-0 w-full">
             <p className="[word-break:break-word] flex-[1_0_0] font-serif font-normal leading-[22px] min-w-px not-italic relative text-[15px] text-white m-0">

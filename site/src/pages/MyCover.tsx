@@ -88,7 +88,7 @@ const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 export default function MyCover() {
   const { account, connectWallet } = useAccount();
   const viewing = queryHolder() ?? account;
-  const policies = usePolled(readPolicies, 30000);
+  const policies = usePolled(readPolicies, 60000);
 
   const mine = useMemo(
     () => (viewing && policies.data ? policies.data.filter((p) => same(p.holder, viewing)) : []),
@@ -180,7 +180,7 @@ export default function MyCover() {
           </div>
 
           {!viewing ? (
-            <div className="bg-[#121418] border border-[#1e222a] border-solid flex flex-col gap-[12px] items-start p-[24px] rounded-[8px] w-full">
+            <div className="peril-glass border border-solid flex flex-col gap-[12px] items-start p-[24px] rounded-[8px] w-full">
               <p className="font-serif text-white text-[16px] m-0">Connect a wallet to see the cover it holds.</p>
               <p className="font-serif text-[#9ca3af] text-[13px] leading-[18px] m-0">
                 Or view any wallet by adding its address to the link, like #/my-cover?holder=0x…
@@ -209,7 +209,7 @@ export default function MyCover() {
                 ))}
               </div>
 
-              <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full" data-name="my-table-container">
+              <div className="peril-glass border border-solid content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full" data-name="my-table-container">
                 <div className="[word-break:break-word] bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex font-serif font-semibold items-start leading-[normal] not-italic p-[16px] relative shrink-0 text-[#9ca3af] text-[12px] w-full" data-name="my-table-head">
                   {["SERVICE", "WINDOW (UTC)", "THRESHOLD", "PREMIUM", "PAYOUT", "STATE"].map((h) => (
                     <p key={h} className="flex-[1_0_0] min-w-px relative m-0">{h}</p>
@@ -271,7 +271,7 @@ export default function MyCover() {
               </div>
 
               {refused && (
-                <div className="[word-break:break-word] bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[12px] items-start p-[20px] relative rounded-[8px] shrink-0 w-full" data-name="rejection-panel">
+                <div className="[word-break:break-word] peril-glass border border-solid content-stretch flex flex-col gap-[12px] items-start p-[20px] relative rounded-[8px] shrink-0 w-full" data-name="rejection-panel">
                   <p className="font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[#ff3b30] text-[14px] whitespace-nowrap m-0">
                     LAST REFUSED CLAIM (stored on the contract for {refused.policy_id})
                   </p>
@@ -290,7 +290,7 @@ export default function MyCover() {
           )}
         </div>
 
-        <div className="bg-[#121418] border border-[#1e222a] border-solid content-stretch flex flex-col gap-[20px] items-start p-[24px] relative rounded-[12px] shrink-0 w-[400px]" data-name="incident-picker-drawer">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[20px] items-start p-[24px] relative rounded-[12px] shrink-0 w-[400px]" data-name="incident-picker-drawer">
           <div className="[word-break:break-word] content-stretch flex flex-col gap-[6px] items-start leading-[normal] relative shrink-0 w-full" data-name="Frame">
             <p className="font-mono font-normal relative shrink-0 text-accent-text text-[11px] m-0">INCIDENT PICKER</p>
             <p className="font-serif font-bold not-italic relative shrink-0 text-[18px] text-white m-0">
