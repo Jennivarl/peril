@@ -10,12 +10,12 @@ import "./index.css";
 
 import Home from "./pages/Home";
 import BuyCover from "./pages/BuyCover";
-import MyCover from "./pages/MyCover.figma";
-import PolicyDetail from "./pages/PolicyDetail.figma";
-import Pool from "./pages/Pool.figma";
-import HowItWorks from "./pages/HowItWorks.figma";
-import Evidence from "./pages/Evidence.figma";
-import Limits from "./pages/Limits.figma";
+import MyCover from "./pages/MyCover";
+import PolicyDetail from "./pages/PolicyDetail";
+import Pool from "./pages/Pool";
+import HowItWorks from "./pages/HowItWorks";
+import Evidence from "./pages/Evidence";
+import Limits from "./pages/Limits";
 
 /**
  * Hash routes, because GitHub Pages cannot rewrite unknown paths back to
