@@ -31,8 +31,16 @@ def _patch_inject_message_to_fd0_for_windows() -> None:
         return
 
     def _inject_message_to_fd0_windows_safe(vm) -> None:
-        from genlayer.py import calldata
-        from genlayer.py.types import Address
+        # genlayer-test 0.30 resolves v0.3's genlayer.calldata / genlayer.types
+        # through sdk_compat; 0.29 only knew v0.2's genlayer.py layout.
+        try:
+            from gltest.direct.sdk_compat import import_address, import_calldata
+
+            calldata = import_calldata()
+            Address = import_address()
+        except ImportError:
+            from genlayer.py import calldata
+            from genlayer.py.types import Address
 
         sender_addr = vm.sender
         if isinstance(sender_addr, bytes):

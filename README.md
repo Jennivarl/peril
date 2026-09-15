@@ -16,7 +16,7 @@ Built on [GenLayer](https://genlayer.com), on Studio Next (Consensus v0.6, GenVM
 | Contract | [`0xA9df0bc18628Ea161077190515aA039026C5D00A`](https://explorer-studio-dev.genlayer.com/address/0xA9df0bc18628Ea161077190515aA039026C5D00A) |
 | Network | Studio Next, chain id 61997, `https://studio-next.genlayer.com/api` |
 | Earlier deployment | Bradbury testnet, [`0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440`](https://explorer-bradbury.genlayer.com/address/0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440), where the first real claim was settled |
-| Tests | `python -m pytest -q`: 72 run, 61 direct-mode tests waiting on a published v0.3 runner |
+| Tests | 133, `python -m pytest -q` |
 
 ---
 
@@ -194,15 +194,12 @@ No network and no chain:
   in-process with genlayer-test's direct mode, serving real saved status
   page responses, and checks both the leader's answer and what an honest
   validator would do with it, including four ways a dishonest leader could
-  lie. **Skipped for now:** direct mode loads the runner named in the
-  contract header from a published GenVM release, and the v0.3 runner Studio
-  Next uses (`5jycge...`) is in none of them yet. All 61 passed against the
-  v0.2 build on Bradbury, and the v0.3 build is verified on Studio Next
-  itself, below.
+  lie. It runs on the same GenVM engine Studio Next runs (`py-genlayer:5jycge...`,
+  from `genvm-manager` release v0.6.0-rc3), which genlayer-test 0.30 downloads
+  on first run (about 310 MB).
 
-The 72 that run today pass. On the v0.2 build, every test was checked by
-breaking the contract on purpose, eleven different ways, and confirming the
-tests failed.
+All 133 pass. On the v0.2 build, every test was checked by breaking the
+contract on purpose, eleven different ways, and confirming the tests failed.
 
 ## Verified live on Studio Next
 

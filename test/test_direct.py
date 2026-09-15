@@ -16,16 +16,7 @@ from pathlib import Path
 
 import pytest
 
-# The bundle now targets GenVM v0.3 on Studio Next, runner
-# py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng. Direct
-# mode loads the runner named in the header from a published GenVM release,
-# and none carries this one yet: v0.3.0-rc7 ships only 1jb45... and 1zr6nq...
-# (checked 2026-09-15). These tests passed against the v0.2 build deployed on
-# Bradbury and run again once the runner is published. Until then the v0.3
-# contract is verified on Studio Next itself; see the README.
-pytestmark = pytest.mark.skip(reason="v0.3 runner 5jycge is not in any published GenVM release yet")
-
-BUNDLE =str(Path(__file__).resolve().parent.parent / "contracts" / "peril_bundle.py")
+BUNDLE = str(Path(__file__).resolve().parent.parent / "contracts" / "peril_bundle.py")
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 GITHUB = "www.githubstatus.com"
@@ -43,6 +34,9 @@ FUNDER = b"\xf0" * 20
 SECOND = b"\xf1" * 20
 POOL = 10_000
 PREMIUM = 100
+# How a payment to a plain wallet reaches the host: an EVM transfer, which
+# GenVM v0.3 names EmitExternalMessage (v0.2 called it EthSend).
+EVM_PAY = "EmitExternalMessage"
 
 
 def fixture(ref: str) -> dict:
@@ -66,6 +60,10 @@ def set_date(vm, stamp: str) -> None:
     deploy, so the already-imported message is updated too.
     """
     vm.warp(stamp)
+    # v0.3 keeps the raw message on genlayer.message; v0.2 on genlayer.gl.
+    message = sys.modules.get("genlayer.message")
+    if message is not None and isinstance(getattr(message, "raw", None), dict):
+        message.raw["datetime"] = stamp
     gl = sys.modules.get("genlayer.gl")
     if gl is not None and getattr(gl, "message_raw", None) is not None:
         gl.message_raw["datetime"] = stamp
@@ -77,7 +75,7 @@ def transfers(direct_vm):
     sent = []
 
     def hook(vm, request):
-        for kind in ("PostMessage", "EthSend"):
+        for kind in ("PostMessage", "EthSend", EVM_PAY):
             if kind in request:
                 msg = request[kind]
                 sent.append({"to": bytes(msg["address"].as_bytes), "value": int(msg["value"]), "kind": kind})
@@ -156,7 +154,7 @@ def test_a_long_serious_outage_pays_the_holder(direct_vm, peril, transfers):
     assert got["impact"] == "critical"
 
     # Exactly one transfer, of exactly the payout, to the buyer.
-    assert transfers == [{"to": BUYER, "value": PREMIUM * 2, "kind": "EthSend"}]
+    assert transfers == [{"to": BUYER, "value": PREMIUM * 2, "kind": EVM_PAY}]
     assert peril.reserves()["pool"] == str(POOL + PREMIUM - PREMIUM * 2)
     assert peril.reserves()["locked"] == "0"
     assert direct_vm.run_validator() is True
@@ -243,7 +241,7 @@ def test_the_payout_goes_to_the_buyer_not_whoever_settles(direct_vm, peril, tran
 
     assert transfers[0]["to"] == BUYER
     # The EVM path: the only one observed to deliver to a plain wallet.
-    assert transfers[0]["kind"] == "EthSend"
+    assert transfers[0]["kind"] == EVM_PAY
 
 
 def test_a_paid_policy_cannot_be_paid_again(direct_vm, peril, transfers):
@@ -557,7 +555,7 @@ def test_premiums_earned_belong_to_the_funders(direct_vm, peril, transfers):
     with direct_vm.prank(FUNDER):
         peril.withdraw(POOL)
 
-    assert transfers == [{"to": FUNDER, "value": POOL + PREMIUM, "kind": "EthSend"}]
+    assert transfers == [{"to": FUNDER, "value": POOL + PREMIUM, "kind": EVM_PAY}]
     assert peril.reserves()["pool"] == "0"
 
 
