@@ -1,0 +1,72 @@
+PERIL.
+Chain ID: 4221 | GenLayer Bradbury
+Home
+Buy Cover
+My Cover
+The Pool
+How It Works
+Evidence
+Limits
+Free: 2.15 GEN
+0x7b...9E3c
+CONSENSUS LIFECYCLE:
+0xef56...3a9c
+Pending
+Proposing
+Committing
+Revealing
+LeaderReveal
+Accepted
+Finalize
+Configure Parametric Cover
+Step 1: Select Service Target
+GitHub API
+Discord
+Vercel
+Netlify
+npm Registry
+Step 2: Downtime Threshold Duration
+1h
+x1.2
+2h
+x1.5
+4h
+x2.0
+8h
+x2.5
+12h
+x3.2
+24h
+x5.0
+Step 3: UTC Date Window Limits
+Start Window (UTC)
+2026-09-15 00:00
+End Window (UTC)
+2026-09-22 00:00
+• Policy start must strictly begin after current UTC time. • Max lookahead constraint is 30 days ahead from today. • Single policy duration window capped at exactly 7 days.
+Step 4: Premium Capital Commit
+Premium Amount (GEN)
+2,500
+GEN
+=
+Calculated Max Payout
+5,000
+GEN (2.0x Multiple)
+Step 5: Contract Identity & Check
+github-2026-09-15
+AVAILABLE
+Review Proposal
+“If GitHub API publishes an outage rated major or critical, beginning between 2026-09-15 00:00 UTC and 2026-09-22 00:00 UTC, lasting 4 hours or more, this pays 5,000 GEN.”
+⚠️
+Pool cannot back this payout; fund it or buy less. Minimum target reserves required for the lockbox threshold limits.
+Policy Premium
+2,500 GEN
+Max Potential Payout
+5,000 GEN
+Remaining Pool Capacity
+3,375,000 GEN
+Expected Gas Limit
+0.045 GEN
+BUY PARAMETRIC COVER
+PERIL Parametric Downtime Protection © 2026. GenLayer Bradbury Testnet Deployment.
+Contract Address: 0x6284f...a81e

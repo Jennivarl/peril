@@ -1,0 +1,97 @@
+PERIL.
+Chain ID: 4221 | GenLayer Bradbury
+Home
+Buy Cover
+My Cover
+The Pool
+How It Works
+Evidence
+Limits
+Free: 2.15 GEN
+0x7b...9E3c
+CONSENSUS LIFECYCLE:
+0xef56...3a9c
+Proposing
+Committing
+Accepted
+Finalizing
+Finalized
+LIQUIDITY ASSURANCE LOCKBOXES
+The Capital Pool
+Parametric coverage requires fully collateralized reserves. LPs supply GEN to underwrite downtime agreements and earn premiums proportional to target risk profiles.
+TOTAL POOL LIQUIDITY
+4,500,000 GEN
+$967,500 USD equivalent
+LOCKED COVER COLLATERAL
+1,120,000 GEN
+Backing 238 policy agreements
+FREE LIQUIDITY CAPACITY
+3,380,000 GEN
+92.4% pool capacity free
+UTILIZATION RATE
+24.88%
+Optimal risk-adjusted yield
+Free Liquidity: 3,380,000 GEN (75.12%)
+Locked Collateral: 1,120,000 GEN (24.88%)
+* Locked reserves are mathematically constrained by active GenLayer policies. LPs cannot withdraw capital currently backing live coverage.
+[+] Deposit Capital
+Fund the coverage pool to issue new policies and accumulate a pro-rata share of all underwriting premiums.
+GEN Amount
+Wallet: 2.15 GEN
+2.15
+GEN
+Projected Shares
+210.78 pSHARES
+DEPOSIT GEN TO POOL
+Deposited capital is immediately minted into pool shares at the current exchange rate of 1.02 GEN/pSHARE. Subject to 0.1% deposit fee.
+[-] Withdraw Capital
+Redeem your pool shares back into raw GEN token. Only capital not currently locked in active cover can be withdrawn.
+Shares to Burn
+Max Redeemable: 0.00 pSHARE
+0.00
+pSHARES
+Est. GEN Payout
+0.00 GEN
+WITHDRAW CAPITAL
+⚠️ Your funder balance is currently 100% locked because your shares are backing live policies. Withdrawals will unlock sequentially as coverage windows expire.
+Your Funder Position
+shares_of(0x7b58797f1...9E3c)
+Total Share Balance
+250,000 pSHARES
+Redeemable Value Now
+255,000 GEN
+Pool Ownership
+5.55%
+Avg Cost Basis
+1.00 GEN / pSHARE
+Net ROI
++2.00%
+SHARE MECHANICS
+Pool shares fluctuate dynamically based on compiled premium distributions vs payout executions. Consensus settlements auto-deduct capital, while expired policies permanently auto-compound premiums into share value.
+Active Pool Risk & Exposure Breakdown
+POLICY ID
+SERVICE
+UTC WINDOW
+LOCKED RESERVES
+THRESHOLD
+EXPOSURE STATUS
+github-w38
+GitHub Status API
+Sep 15 - Sep 22
+5,000 GEN
+240 mins
+BREACH RISK
+discord-w38
+Discord Service
+Sep 15 - Sep 22
+3,200 GEN
+120 mins
+SECURE
+vercel-w38
+Vercel Edge Platform
+Sep 18 - Sep 25
+1,500 GEN
+60 mins
+PENDING
+PERIL Parametric Downtime Protection © 2026. GenLayer Bradbury Testnet Deployment.
+Contract Address: 0x6284f...a81e

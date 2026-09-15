@@ -1,0 +1,87 @@
+PERIL.
+Chain ID: 4221 | GenLayer Bradbury
+Home
+Buy Cover
+My Cover
+The Pool
+How It Works
+Evidence
+Limits
+Free: 2.15 GEN
+0x7b...9E3c
+CONSENSUS LIFECYCLE:
+0xef56...3a9c
+Pending
+Proposing
+Committing
+Revealing
+LeaderReveal
+Accepted
+Finalize
+Your Covered Policies
+ACTIVE POLICIES
+3 contracts
+TOTAL VALUE AT RISK
+9,700 GEN
+CLAIMABLE PAYOUTS
+5,000 GEN
+SERVICE
+WINDOW (UTC)
+THRESHOLD
+PREMIUM
+PAYOUT
+STATE
+ACTION
+GitHub API
+Sep 15 - Sep 22
+240 mins
+2,500 GEN
+5,000 GEN
+Claimable
+Window closed, claimable
+CLAIM PAYOUT
+Discord
+Sep 15 - Sep 22
+120 mins
+1,600 GEN
+3,200 GEN
+Active
+Running, 4 days left
+VIEW
+Vercel
+Sep 18 - Sep 25
+60 mins
+750 GEN
+1,500 GEN
+Pending
+Starts in 2 days
+VIEW
+REJECTION HISTORY (Oracle Evaluation Log)
+Outcome: Rejected
+Duration: 18 minutes
+Impact: None
+Contract Reason: "18 minutes is under the 120 minute threshold required for policy discord-w38"
+INCIDENT PICKER DRAWER
+Verify Live Incidents
+SOURCE ENDPOINT
+https://githubstatus.com/api/v2/incidents.json
+Evaluated client-side
+Synchronized
+zkxwbgr0cnmx
+Eligible
+Database Outage on Actions API
+Sep 17, 2026, 04:12 - 11:47 UTC
+Duration: 455 minutes
+Settle(github-2026-09-15, zkxwbgr0cnmx)
+inc-99238
+Under Threshold
+Under Threshold incident
+Sep 16, 2026, 01:05 - 01:23 UTC
+Duration: 18 minutes
+inc-00912
+Outside Window
+Webhook Router Delay
+Sep 10, 2026, 08:00 - 10:30 UTC
+Duration: 120 minutes
+PERIL Parametric Downtime Protection © 2026. GenLayer Bradbury Testnet Deployment.
+Contract Address: 0x6284f...a81e

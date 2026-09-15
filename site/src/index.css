@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  /* Chosen from the options canvas: IBM Plex Serif for headlines and
+     sentences, IBM Plex Mono for the logo, numbers, data and buttons. */
+  --font-serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /*
+   * Cyber Amber replaces the Figma file's #00ff9d everywhere. It measures
+   * 9.0:1 on the page (#090a0c) and 8.4:1 on cards (#121418), so one value
+   * works for text, borders and fills. Text ON an amber fill is dark
+   * #090a0c (9.0:1); white on amber would be far worse.
+   */
+  --color-accent: #ff9500;
+  --color-accent-line: #ff9500;
+  --color-accent-text: #ff9500;
+  --color-accent-tint: rgba(255, 149, 0, 0.12);
+  /* The two dark green panel tints from the design, in amber. */
+  --color-accent-deep: #2b1d08;
+  --color-accent-deeper: #221a0b;
+}
+
+html,
+body,
+#root {
+  background: #090a0c;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes peril-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.peril-pulse {
+  animation: peril-pulse 1.6s ease-in-out infinite;
+}

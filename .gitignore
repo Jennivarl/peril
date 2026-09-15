@@ -9,3 +9,6 @@ node_modules/
 next/arc/vault/lib/
 next/arc/vault/out/
 next/arc/vault/cache/
+
+# site build output (GitHub Pages builds it in CI)
+site/dist/
