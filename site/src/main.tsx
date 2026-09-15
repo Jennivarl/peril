@@ -8,7 +8,7 @@ import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/700.css";
 import "./index.css";
 
-import Home from "./pages/Home.figma";
+import Home from "./pages/Home";
 import BuyCover from "./pages/BuyCover.figma";
 import MyCover from "./pages/MyCover.figma";
 import PolicyDetail from "./pages/PolicyDetail.figma";
