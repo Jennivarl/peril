@@ -9,7 +9,7 @@ import "@fontsource/ibm-plex-mono/700.css";
 import "./index.css";
 
 import Home from "./pages/Home";
-import BuyCover from "./pages/BuyCover.figma";
+import BuyCover from "./pages/BuyCover";
 import MyCover from "./pages/MyCover.figma";
 import PolicyDetail from "./pages/PolicyDetail.figma";
 import Pool from "./pages/Pool.figma";
