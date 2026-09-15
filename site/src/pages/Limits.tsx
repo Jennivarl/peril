@@ -150,17 +150,17 @@ export default function Limits() {
       <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="diagrams-container">
         <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[28px] relative rounded-[12px]">
           <p className="font-mono font-normal leading-[normal] relative shrink-0 text-[#9ca3af] text-[11px] whitespace-nowrap m-0">REAL CLAIM TIMELINE (GITHUB-W38, RECORDED BY THE NETWORK)</p>
-          <div className="content-stretch flex gap-[8px] items-stretch relative shrink-0 w-full">
-            {timeline.map(([k, when, what], i) => (
-              <div key={k} className="contents">
-                {i > 0 && <div className="bg-[#1e222a] h-px relative shrink-0 w-[8px] self-center" />}
-                <div className={`${i === timeline.length - 1 ? "bg-accent-tint border-accent-line" : "bg-[#121418] border-[#1e222a]"} border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start leading-[normal] min-w-px p-[12px] relative rounded-[6px]`}>
-                  <p className={`font-mono text-[11px] m-0 ${i === timeline.length - 1 ? "text-accent-text" : "text-[#8ab4f8]"}`}>{when}</p>
-                  <p className="font-mono text-[#9ca3af] text-[10px] m-0">{k}</p>
-                  <p className="font-serif not-italic text-[12px] text-white leading-[16px] m-0">{what}</p>
+          <div className="content-stretch flex flex-col gap-[8px] items-stretch relative shrink-0 w-full">
+            {timeline.map(([k, when, what], i) => {
+              const last = i === timeline.length - 1;
+              return (
+                <div key={k} className={`${last ? "bg-accent-tint border-accent-line" : "bg-[#121418] border-[#1e222a]"} border border-solid flex gap-[12px] items-center px-[12px] py-[10px] rounded-[6px]`}>
+                  <p className={`font-mono font-bold text-[12px] m-0 w-[64px] shrink-0 ${last ? "text-accent-text" : "text-[#8ab4f8]"}`}>{when}</p>
+                  <p className="font-mono text-[#9ca3af] text-[10px] m-0 w-[110px] shrink-0">{k}</p>
+                  <p className="font-serif not-italic text-[13px] text-white leading-[17px] m-0">{what}</p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <a href={txUrl(REAL_CLAIM_TX)} target="_blank" rel="noreferrer" className="font-mono text-[#4b5563] text-[11px] hover:text-[#9ca3af]">
             {stamps.error ? `Could not read the timestamps: ${stamps.error}` : "Timestamps from the claim's receipt on Bradbury. Finality time is the median of 48 Bradbury transactions we measured."}
