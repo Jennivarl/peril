@@ -16,6 +16,19 @@ import { clearExternalSigner, setExternalSigner } from "../lib/wallet";
  * has to match what the click actually does: this opens Privy, never a wallet
  * extension.
  */
+/**
+ * A signed-in visitor has no use for the landing page, so the first time an
+ * account is seen on a page load, Home hands over to Explore. Held at module
+ * level because every page mounts its own header: a component flag would reset
+ * on each route and make the Home tab impossible to reach.
+ */
+let handedOverThisLoad = false;
+
+function isHome(): boolean {
+  const h = window.location.hash;
+  return h === "" || h === "#" || h === "#/";
+}
+
 export function PrivyLoginButton({ className, label }: { className: string; label: string }) {
   const { ready, login } = usePrivy();
   return (
@@ -32,6 +45,12 @@ export function PrivyControls() {
   const [saved, setSaved] = useState(readProfile);
 
   useEffect(() => onProfile(setSaved), []);
+
+  useEffect(() => {
+    if (!ready || !authenticated || handedOverThisLoad) return;
+    handedOverThisLoad = true;
+    if (isHome()) window.location.hash = "#/explore";
+  }, [ready, authenticated]);
 
   useEffect(() => {
     const wallet = wallets[0];
