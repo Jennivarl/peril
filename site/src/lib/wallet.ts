@@ -136,8 +136,7 @@ export async function ensureChain(): Promise<void> {
   const id = (await provider().request({ method: "eth_chainId" })) as string;
   if (parseInt(id, 16) === CHAIN_ID) return;
   // An embedded wallet may not implement the switch call, but it must still
-  // end up on Studio Next: signing for another chain is what produces viem's
-  // "missing or invalid parameters" further down.
+  // end up on Studio Next, or it would sign for the wrong network.
   if (external) {
     try {
       await provider().request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_ID_HEX }] });
@@ -297,25 +296,19 @@ async function write(functionName: string, args: unknown[], value = 0n): Promise
   // Studio Next charges each transaction up front, and a call that pays a
   // wallet must also reserve a fee for that payment or it fails with "fee
   // no_matching_allocation". Simulating the call first returns both.
-  // Studio Next's simulator will only run a call that takes no arguments:
-  // sim_estimateTransactionFees answers "execution failed" for every other
-  // shape, including a method that does not exist. Verified against the live
-  // node: fund() estimates, fund("x") does not, and neither does any buy.
-  //
-  // So the estimate is advice, not a gate. A failed estimate must not stop the
-  // transaction: only a call that pays a wallet needs the allocation it
-  // returns, and buy pays nobody. When it fails, send without a preset and let
-  // the node apply its own.
+  // The per-call estimate simulates the call, and the simulation answers
+  // "execution failed" whenever the call would raise. It cannot run buy, even
+  // with valid arguments, while settle simulates normally (checked against
+  // the live node). So the estimate is advice, not a gate: only a call that
+  // pays a wallet needs the allocation it returns, and buy pays nobody.
   let step = "estimating the fee";
   let fees: { distribution: unknown; messageAllocations: unknown; feeValue: unknown } | undefined;
   try {
     const est = await client.estimateTransactionFeesForWrite({ address, functionName, args: callArgs, value });
     fees = { distribution: est.distribution, messageAllocations: est.messageAllocations, feeValue: est.feeValue };
   } catch {
-    // The per-call estimate needs the simulator, which refuses anything with
-    // arguments. The generic estimate does not simulate, and the consensus
-    // contract rejects a zero fee (FeeValueMustBeNonZero), so use it instead.
-    // buy pays no wallet, so no message allocation is needed.
+    // The generic estimate does not simulate. The consensus contract rejects a
+    // zero fee (FeeValueMustBeNonZero), so a fee is always sent.
     try {
       const base = await client.estimateTransactionFees();
       fees = { distribution: base.distribution, messageAllocations: [], feeValue: base.feeValue };

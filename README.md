@@ -15,7 +15,8 @@ Built on [GenLayer](https://genlayer.com), on Studio Next (Consensus v0.6, GenVM
 |---|---|
 | Contract | [`0xA9df0bc18628Ea161077190515aA039026C5D00A`](https://explorer-studio-dev.genlayer.com/address/0xA9df0bc18628Ea161077190515aA039026C5D00A) |
 | Network | Studio Next, chain id 61997, `https://studio-next.genlayer.com/api` |
-| Earlier deployment | Bradbury testnet, [`0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440`](https://explorer-bradbury.genlayer.com/address/0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440), where the first real claim was settled |
+| Live site | [jennivarl.github.io/peril](https://jennivarl.github.io/peril/) |
+| Earlier deployment | Bradbury testnet, [`0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440`](https://explorer-bradbury.genlayer.com/address/0xb6CC1Fdf94795ED1e57FE931AB48e63888C1e440), before the move to Studio Next |
 | Tests | 133, `python -m pytest -q` |
 
 ---
@@ -167,7 +168,13 @@ or it fails with `fee no_matching_allocation`. The client gets that
 reservation by simulating the call first (`estimateTransactionFeesForWrite`
 in genlayer-js 2.0) and sending its fees with the write. Tested on
 2026-09-15: a fresh wallet received exactly 0.1 GEN and the paying contract
-fell from 1.0 to 0.9. The site sends every write this way.
+fell from 1.0 to 0.9.
+
+The fee simulation cannot run `buy`: it answers `execution failed` for it
+even with valid arguments, while `settle` simulates normally. `buy` pays no
+wallet and needs no reservation, so when the simulation fails the site sends
+the network's standard fee instead. It never sends a zero fee, which the
+consensus contract rejects.
 
 State is always written before value moves, on every path, and transfers
 settle on finalisation rather than acceptance, because state on this network
@@ -220,26 +227,33 @@ same four fields, three days apart: one outage began outside the window and
 was refused, the next began inside it and paid. Neither needed anyone's
 permission.
 
+On 2026-09-17 the same contract sold cover from the live site to an account
+created with an email, with no wallet extension: policy `discord-2026-09-18`,
+readable with `get_policy`.
+
 ## Trying it
 
-The site is in [`site/`](site/). It reads the contract with no wallet, and
-signs with the visitor's own wallet for anything that spends.
+Live at **[jennivarl.github.io/peril](https://jennivarl.github.io/peril/)**.
+Every page reads the live contract, with or without an account.
+
+1. **Create an account** with an email. No wallet extension is needed: the
+   site creates an in-browser wallet on GenLayer Studio Next and funds it
+   with 5 testnet GEN from the network's faucet on first sign-in.
+2. Pick a service on **Explore** or **Buy Cover**, choose an outage length
+   and a window, and buy. The in-browser wallet signs, and the site sends the
+   signed transaction straight to Studio Next.
+3. Your policies are on **My Cover**. When a qualifying outage happens, claim
+   it there by picking the incident; the site previews the verdict before
+   you sign.
+4. **Account** shows your balance and address, and can top up testnet GEN.
+
+To run the site locally:
 
 ```bash
 cd site
 npm install
 npm run dev
 ```
-
-1. Open the printed address. Every page reads the live contract.
-2. To buy cover or fund the pool, connect a browser wallet. The site asks it
-   to add or switch to GenLayer Studio Next (chain id 61997).
-3. The wallet needs GEN on Studio Next. The Studio at
-   `https://studio-next.genlayer.com` has a fund button next to the account
-   balance.
-4. Buy cover on **Buy Cover**. When a qualifying outage happens, claim it on
-   **My Cover** by picking the incident; the site previews the verdict before
-   you sign.
 
 ## Known limits, stated rather than hidden
 
@@ -294,7 +308,6 @@ deploy/price_table.py       derives the price table from published history
 deploy/price_table.json     the raw evidence behind the table
 test/                       tests and real status page fixtures
 site/                       the front end, reading and writing the live contract
-docs/UI_BRIEF.md            what the front end reads, does and shows
 next/arc/                   PAUSED: USDC payouts on Arc, not deployed, not tested
 ```
 
