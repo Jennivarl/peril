@@ -166,7 +166,7 @@ export default function MyCover() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-my-cover">
       <Header active="/my-cover" />
 
-      <div className="content-stretch flex gap-[32px] items-start p-[40px] relative shrink-0 w-full" data-name="my-cover-content">
+      <div className="content-stretch flex flex-col lg:flex-row gap-[32px] items-stretch lg:items-start p-[40px] relative shrink-0 w-full" data-name="my-cover-content">
         <div className="content-stretch flex flex-[1_0_0] flex-col gap-[24px] items-start min-w-px relative" data-name="portfolio-container">
           <div className="content-stretch flex items-end justify-between w-full gap-[16px]">
             <h1 className="[word-break:break-word] font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[28px] text-[#16141b] whitespace-nowrap m-0">
@@ -201,7 +201,7 @@ export default function MyCover() {
             </div>
           ) : (
             <>
-              <div className="[word-break:break-word] content-stretch flex gap-[16px] items-start leading-[normal] relative shrink-0 w-full whitespace-nowrap" data-name="metrics-row">
+              <div className="[word-break:break-word] content-stretch flex flex-col lg:flex-row gap-[16px] items-stretch lg:items-start leading-[normal] relative shrink-0 w-full whitespace-nowrap" data-name="metrics-row">
                 {[
                   { label: "ACTIVE POLICIES", value: policies.data ? `${open.length} ${open.length === 1 ? "contract" : "contracts"}` : "…", accent: false },
                   { label: "TOTAL COVER", value: policies.data ? `${gen(cover)} GEN` : "…", accent: false },

@@ -31,7 +31,7 @@ export default function Evidence() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-pricing-evidence">
       <Header active="/evidence" />
 
-      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[40px] pt-[64px] px-[120px] relative shrink-0 w-full" data-name="evidence-hero">
+      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[40px] pt-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="evidence-hero">
         <div className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start px-[12px] py-[4px] relative rounded-[100px] shrink-0">
           <p className="font-mono font-bold leading-[normal] relative shrink-0 text-accent-text text-[11px] whitespace-nowrap m-0">PRICES DERIVED FROM PUBLISHED OUTAGE HISTORY</p>
         </div>
@@ -41,7 +41,7 @@ export default function Evidence() {
         </p>
       </div>
 
-      <div className="content-stretch flex flex-col gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="matrix-container">
+      <div className="content-stretch flex flex-col gap-[24px] items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="matrix-container">
         <div className="content-stretch flex items-center justify-between relative shrink-0 w-full gap-[16px]">
           <div className="content-stretch flex flex-col gap-[6px] items-start leading-[normal] relative shrink-0">
             <p className="font-mono font-normal relative shrink-0 text-accent-text text-[12px] m-0">OUTAGE COVERAGE MATRIX</p>
@@ -110,7 +110,7 @@ export default function Evidence() {
         </p>
       </div>
 
-      <div className="content-stretch flex flex-col gap-[32px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="methodology-container">
+      <div className="content-stretch flex flex-col gap-[32px] items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="methodology-container">
         <div className="content-stretch flex flex-col gap-[6px] items-start leading-[normal] relative shrink-0">
           <p className="font-mono font-normal text-accent-text text-[12px] m-0">THE PRICING RULE</p>
           <p className="font-serif font-extrabold not-italic text-[24px] text-[#16141b] m-0">Active Risk Calculation Methodology</p>
@@ -162,7 +162,7 @@ export default function Evidence() {
         </div>
       </div>
 
-      <div className="content-stretch flex flex-col items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="omission-callout">
+      <div className="content-stretch flex flex-col items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="omission-callout">
         <div className="bg-[rgba(124,58,237,0.12)] border border-[#6d28d9] border-solid content-stretch flex flex-col gap-[12px] items-start p-[24px] relative rounded-[12px] shrink-0 w-full">
           <div className="content-stretch flex gap-[8px] items-center leading-[normal] text-[#5b21b6] whitespace-nowrap">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -178,7 +178,7 @@ export default function Evidence() {
         </div>
       </div>
 
-      <div className="content-stretch flex flex-col items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="provenance-section">
+      <div className="content-stretch flex flex-col items-start pb-[80px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="provenance-section">
         <div className="peril-glass border border-solid content-stretch flex flex-col gap-[20px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full">
           <div className="content-stretch flex items-center justify-between relative shrink-0 w-full gap-[16px]">
             <p className="font-serif font-extrabold leading-[normal] not-italic text-[18px] text-[#16141b] m-0">Technical Data Provenance</p>

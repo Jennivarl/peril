@@ -35,8 +35,8 @@ export default function Explore() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-explore">
       <Header active="/explore" />
 
-      <div className="content-stretch flex flex-col gap-[16px] items-start px-[120px] pt-[56px] pb-[24px] relative shrink-0 w-full" data-name="explore-hero">
-        <h1 className="font-serif font-extrabold leading-[52px] not-italic relative shrink-0 text-[44px] text-[#16141b] max-w-[820px] m-0">
+      <div className="content-stretch flex flex-col gap-[16px] items-start px-[20px] lg:px-[120px] pt-[56px] pb-[24px] relative shrink-0 w-full" data-name="explore-hero">
+        <h1 className="font-serif font-extrabold leading-[52px] not-italic relative shrink-0 text-[32px] lg:text-[44px] text-[#16141b] max-w-[820px] m-0">
           What you can cover
         </h1>
         <p className="font-serif font-normal leading-[26px] not-italic relative shrink-0 text-[#67626f] text-[17px] max-w-[680px] m-0">
@@ -52,7 +52,7 @@ export default function Explore() {
         </div>
       </div>
 
-      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[128px] px-[120px] relative shrink-0 w-full" data-name="catalogue">
+      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[128px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="catalogue">
         {!covers.data && (
           <p className="font-mono text-[#67626f] text-[13px] m-0">
             {covers.error ? `Could not read the price list from Studio Next: ${covers.error}` : "Reading the price list from Studio Next…"}

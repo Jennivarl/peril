@@ -102,7 +102,7 @@ export default function Limits() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-limits">
       <Header active="/limits" />
 
-      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[40px] pt-[64px] px-[120px] relative shrink-0 w-full" data-name="limits-hero">
+      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[40px] pt-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="limits-hero">
         <div className="bg-[rgba(124,58,237,0.12)] border border-[#5b21b6] border-solid content-stretch flex items-start px-[12px] py-[4px] relative rounded-[100px] shrink-0">
           <p className="font-mono font-bold leading-[normal] relative shrink-0 text-[#5b21b6] text-[11px] whitespace-nowrap m-0">{`KNOWN LIMITS, STATED RATHER THAN HIDDEN`}</p>
         </div>
@@ -112,7 +112,7 @@ export default function Limits() {
         </p>
       </div>
 
-      <div className="content-stretch flex flex-col gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="boundaries-container">
+      <div className="content-stretch flex flex-col gap-[24px] items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="boundaries-container">
         <Boundary
           n="01"
           title="The Provider Is the Oracle"
@@ -151,7 +151,7 @@ export default function Limits() {
         />
       </div>
 
-      <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="diagrams-container">
+      <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="diagrams-container">
         <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[28px] relative rounded-[12px]">
           <p className="font-mono font-normal leading-[normal] relative shrink-0 text-[#67626f] text-[11px] whitespace-nowrap m-0">THE CLAIM THAT PAID (GITHUB-W38, RECORDED BY THE NETWORK)</p>
           <div className="content-stretch flex flex-col gap-[8px] items-stretch relative shrink-0 w-full">
@@ -199,7 +199,7 @@ export default function Limits() {
         </div>
       </div>
 
-      <div className="content-stretch flex gap-[24px] items-start leading-[normal] not-italic pb-[64px] px-[120px] relative shrink-0 w-full" data-name="checklist-section">
+      <div className="content-stretch flex gap-[24px] items-start leading-[normal] not-italic pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="checklist-section">
         <List
           title="What PERIL Does NOT Cover"
           items={[
@@ -229,7 +229,7 @@ export default function Limits() {
         />
       </div>
 
-      <div className="content-stretch flex items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="disclaimer-alert-section">
+      <div className="content-stretch flex items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="disclaimer-alert-section">
         <div className="bg-[rgba(220,38,38,0.10)] border border-[#dc2626] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[32px] relative rounded-[12px]" role="note">
           <div className="content-stretch flex gap-[8px] items-center leading-[normal] relative shrink-0 text-[#b91c1c] whitespace-nowrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -245,7 +245,7 @@ export default function Limits() {
         </div>
       </div>
 
-      <div className="content-stretch flex gap-[24px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="cta-row">
+      <div className="content-stretch flex gap-[24px] items-start pb-[80px] px-[20px] lg:px-[120px] relative shrink-0 w-full flex-wrap" data-name="cta-row">
         <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[32px] relative rounded-[12px]">
           <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[20px] text-[#16141b] m-0">Review Outage Statistics</p>
           <p className="font-serif font-normal leading-[20px] not-italic relative shrink-0 text-[#67626f] text-[14px] m-0">

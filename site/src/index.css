@@ -363,3 +363,46 @@ button:disabled {
 .peril-scroll::-webkit-scrollbar { width: 6px; }
 .peril-scroll::-webkit-scrollbar-thumb { background: rgba(22, 20, 27, 0.22); border-radius: 3px; }
 .peril-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/*
+ * Phones and small tablets. The pages were drawn for a desktop canvas, so
+ * below 1024px every row of side-by-side panels stacks, nothing may be wider
+ * than the screen, and long labels wrap instead of pushing the page sideways.
+ * min-width still beats max-width, so a table that is meant to scroll inside
+ * its own box keeps its width.
+ */
+@media (max-width: 1023px) {
+
+  /* Choice buttons wrap three to a row instead of squeezing their labels. */
+  #root [data-name="radio-grid"] > button { flex: 1 1 30%; min-width: 30%; }
+
+  #root div.flex:not(.flex-col):has(> div.flex-\[1_0_0\]),
+  #root div.flex:not(.flex-col):has(> div[class*="w-["]:not([class*="w-full"])) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #root div.flex:not(.flex-col) > div.flex-\[1_0_0\] { flex: 0 0 auto; width: 100%; }
+
+  #root :where(p, h1, h2, h3, label).whitespace-nowrap,
+  #root span.whitespace-nowrap:not(button span):not(.peril-cta span) {
+    white-space: normal;
+  }
+
+  /* A row of short items (a title and its badge, a legend, a pair of links)
+     drops onto a second line rather than off the edge of the screen. */
+  #root div.flex:not(.flex-col) { flex-wrap: wrap; }
+
+  /* The outage table scrolls on its own; start it at the left edge. */
+  #root [data-name="record-section"] { align-items: flex-start; }
+}
+
+/*
+ * Nothing wider than a phone screen. It sits in the base layer on purpose:
+ * Tailwind's utilities are layered, and an unlayered rule would beat every
+ * max-w-* class, however weak its selector.
+ */
+@layer base {
+  @media (max-width: 1023px) {
+    #root * { max-width: 100%; }
+  }
+}

@@ -85,7 +85,7 @@ function ProfileBody() {
 
   if (!account) {
     return (
-      <div className="content-stretch flex flex-col gap-[12px] items-start px-[120px] py-[64px] relative shrink-0 w-full">
+      <div className="content-stretch flex flex-col gap-[12px] items-start px-[20px] lg:px-[120px] py-[64px] relative shrink-0 w-full">
         <h1 className="font-serif font-extrabold not-italic relative shrink-0 text-[34px] text-[#16141b] m-0">Your account</h1>
         <p className="font-serif not-italic relative shrink-0 text-[#67626f] text-[16px] m-0">
           Create an account from the button in the header, and this page will show what it holds.
@@ -95,17 +95,17 @@ function ProfileBody() {
   }
 
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start px-[120px] py-[56px] relative shrink-0 w-full" data-name="profile">
+    <div className="content-stretch flex flex-col gap-[24px] items-start px-[20px] lg:px-[120px] py-[56px] relative shrink-0 w-full" data-name="profile">
       <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0">
         <p className="peril-card-title relative shrink-0 text-[12px] text-[#16141b] m-0">Signed in</p>
-        <h1 className="font-serif font-extrabold not-italic relative shrink-0 text-[40px] text-[#16141b] m-0">
+        <h1 className="font-serif font-extrabold not-italic relative shrink-0 text-[30px] lg:text-[40px] text-[#16141b] m-0">
           {profile.name || "Your account"}
         </h1>
       </div>
 
       <div className="content-stretch flex flex-wrap gap-[20px] items-stretch relative shrink-0 w-full">
         {/* who */}
-        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[18px] items-start p-[28px] relative rounded-[14px] shrink-0 w-[420px]">
+        <div className="peril-glass border border-solid content-stretch flex flex-col gap-[18px] items-start p-[28px] relative rounded-[14px] shrink-0 w-full lg:w-[420px]">
           <div className="content-stretch flex gap-[16px] items-center relative shrink-0 w-full">
             <span className="overflow-hidden relative rounded-[12px] shrink-0 size-[72px]">
               {profile.avatar ? (
@@ -173,7 +173,7 @@ function ProfileBody() {
         </div>
 
         {/* what it holds */}
-        <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[18px] items-start min-w-[380px] p-[28px] relative rounded-[14px]">
+        <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[18px] items-start min-w-0 lg:min-w-[380px] p-[28px] relative rounded-[14px]">
           <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0">
             <p className="font-mono relative shrink-0 text-[#67626f] text-[11px] m-0">BALANCE</p>
             <p className="font-mono font-bold relative shrink-0 text-[34px] m-0">
@@ -267,7 +267,7 @@ export default function Profile() {
       {privyEnabled ? (
         <ProfileBody />
       ) : (
-        <div className="content-stretch flex flex-col gap-[12px] items-start px-[120px] py-[64px] relative shrink-0 w-full">
+        <div className="content-stretch flex flex-col gap-[12px] items-start px-[20px] lg:px-[120px] py-[64px] relative shrink-0 w-full">
           <h1 className="font-serif font-extrabold not-italic relative shrink-0 text-[34px] text-[#16141b] m-0">Your account</h1>
           <p className="font-serif not-italic relative shrink-0 text-[#67626f] text-[16px] max-w-[640px] m-0">
             Accounts are switched off in this build, so there is no profile to show. Connect a wallet instead and your cover will appear under My Cover.

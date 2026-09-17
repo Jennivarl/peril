@@ -128,15 +128,15 @@ export default function Home() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-home">
       <Header active="/" />
 
-      <div className="content-stretch flex flex-col gap-[26px] items-center px-[120px] pt-[104px] pb-[56px] relative shrink-0 w-full" data-name="hero">
+      <div className="content-stretch flex flex-col gap-[26px] items-center px-[20px] lg:px-[120px] pt-[104px] pb-[56px] relative shrink-0 w-full" data-name="hero">
         <div className="peril-glow left-1/2 top-[0px] -translate-x-1/2 h-[420px] w-[820px]" aria-hidden="true" />
-        <h1 className="[word-break:break-word] font-serif font-extrabold leading-[56px] not-italic relative shrink-0 text-[48px] text-center text-[#16141b] max-w-[820px] m-0">
+        <h1 className="[word-break:break-word] font-serif font-extrabold leading-[56px] not-italic relative shrink-0 text-[34px] lg:text-[48px] text-center text-[#16141b] max-w-[820px] m-0">
           Downtime cover, settled by pure arithmetic.
         </h1>
         <p className="[word-break:break-word] font-serif font-normal leading-[27px] not-italic relative shrink-0 text-[#67626f] text-[17px] text-center max-w-[620px] m-0">
           {"Cover for the services your work depends on. When one of them publishes an outage long enough to break the threshold you bought, the pool pays you."}
         </p>
-        <div className="content-stretch flex gap-[24px] items-center mt-[14px] relative shrink-0" data-name="hero-ctas">
+        <div className="content-stretch flex gap-[24px] items-center mt-[14px] relative shrink-0 flex-wrap" data-name="hero-ctas">
           <a href="#/explore" className="peril-cta peril-cta-wide peril-cta-lg content-stretch flex items-start relative shrink-0 no-underline" data-name="cta-primary">
             EXPLORE COVERED SERVICES
           </a>
@@ -147,10 +147,10 @@ export default function Home() {
 
       </div>
 
-      <div className="content-stretch flex flex-col gap-[36px] items-center px-[120px] pt-[52px] pb-[104px] relative shrink-0 w-full" data-name="argument">
+      <div className="content-stretch flex flex-col gap-[36px] items-center px-[20px] lg:px-[120px] pt-[52px] pb-[104px] relative shrink-0 w-full" data-name="argument">
         <div className="peril-glow left-[-160px] top-[20px] h-[400px] w-[520px]" aria-hidden="true" />
         <div className="content-stretch flex flex-col gap-[10px] items-center relative shrink-0">
-          <h2 className="font-serif font-extrabold leading-[44px] not-italic relative shrink-0 text-[37px] text-center text-[#16141b] max-w-[720px] m-0">
+          <h2 className="font-serif font-extrabold leading-[44px] not-italic relative shrink-0 text-[28px] lg:text-[37px] text-center text-[#16141b] max-w-[720px] m-0">
             {"What we took out of insurance."}
           </h2>
           <p className="font-serif font-normal leading-[24px] not-italic relative shrink-0 text-[#67626f] text-[15px] text-center max-w-[600px] m-0">
@@ -199,8 +199,8 @@ export default function Home() {
         is, the larger the multiple sold on it. Counts are the snapshot in
         evidence.ts; nothing here is estimated.
       */}
-      <div className="content-stretch flex flex-col items-center px-[120px] pb-[104px] relative shrink-0 w-full" data-name="record-section">
-        <div className="content-stretch flex flex-col gap-[12px] items-start relative shrink-0 w-full max-w-[880px]" data-name="record">
+      <div className="content-stretch flex flex-col items-center px-[20px] lg:px-[120px] pb-[104px] relative shrink-0 w-full overflow-x-auto" data-name="record-section">
+        <div className="content-stretch flex flex-col gap-[12px] items-start relative shrink-0 w-full max-w-[880px] min-w-[680px]" data-name="record">
           <div className="content-stretch flex items-baseline justify-between relative shrink-0 w-full">
             <p className="peril-card-title relative shrink-0 text-[12px] text-[#16141b] m-0">How long their outages actually run</p>
             <p className="font-mono relative shrink-0 text-[#787384] text-[11px] m-0">{SNAPSHOT.window.toUpperCase()}</p>

@@ -122,16 +122,16 @@ export default function Pool() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-pool">
       <Header active="/pool" />
 
-      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[40px] pt-[48px] px-[120px] relative shrink-0 w-full" data-name="pool-hero">
+      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[40px] pt-[48px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="pool-hero">
         <div className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start px-[12px] py-[4px] relative rounded-[100px] shrink-0">
           <p className="font-mono font-bold leading-[normal] relative shrink-0 text-accent-text text-[12px] whitespace-nowrap m-0">OPEN UNDERWRITING POOL</p>
         </div>
-        <h1 className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[40px] text-[#16141b] m-0">The Capital Pool</h1>
+        <h1 className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[30px] lg:text-[40px] text-[#16141b] m-0">The Capital Pool</h1>
         <p className="font-serif font-normal leading-[22px] not-italic relative shrink-0 text-[#67626f] text-[16px] max-w-[790px] m-0">
           Every policy is fully backed before it is sold. Anyone can fund the pool and receive shares of it: premiums from cover that never pays raise what a share is worth, and payouts lower it.
         </p>
 
-        <div className="[word-break:break-word] content-stretch flex gap-[16px] items-start leading-[normal] relative shrink-0 w-full" data-name="stats-row">
+        <div className="[word-break:break-word] content-stretch flex flex-col lg:flex-row gap-[16px] items-stretch lg:items-start leading-[normal] relative shrink-0 w-full" data-name="stats-row">
           <StatBox label="TOTAL POOL LIQUIDITY" value={r ? `${gen(pool)} GEN` : unknown} sub="" />
           <StatBox label="LOCKED COVER COLLATERAL" value={r ? `${gen(locked)} GEN` : unknown} sub={policies.data ? `Backing ${open.length} open ${open.length === 1 ? "policy" : "policies"}` : "…"} tone="locked" />
           <StatBox label="FREE LIQUIDITY CAPACITY" value={r ? `${gen(free)} GEN` : unknown} sub={r ? `${freeShare.toFixed(1)}% of the pool is free` : "…"} tone="free" />
@@ -172,7 +172,7 @@ export default function Pool() {
             })()}
           </div>
 
-          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start justify-center min-w-[380px] relative">
+          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start justify-center min-w-0 lg:min-w-[380px] relative">
             <p className="font-serif font-normal leading-[normal] not-italic relative shrink-0 text-[#787384] text-[11px] w-full m-0">
               * Funds backing open cover cannot be withdrawn. Redemptions are paid only from free funds, so the money a policyholder may be owed never leaves.
             </p>
@@ -180,8 +180,8 @@ export default function Pool() {
       </div>
       </div>
 
-      <div className="content-stretch flex gap-[24px] items-start pb-[48px] px-[120px] relative shrink-0 w-full" data-name="pool-interactive">
-        <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-start min-w-px relative" data-name="forms-grid">
+      <div className="content-stretch flex gap-[24px] items-start pb-[48px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="pool-interactive">
+        <div className="content-stretch flex flex-col lg:flex-row flex-[1_0_0] gap-[16px] items-stretch lg:items-start min-w-px relative" data-name="forms-grid">
           <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[24px] relative rounded-[12px]" data-name="fund-card">
             <p className="font-mono font-extrabold leading-[normal] relative shrink-0 text-accent-text text-[16px] w-full m-0">Deposit Capital</p>
             <p className="font-serif font-normal leading-[normal] not-italic relative shrink-0 text-[#67626f] text-[13px] w-full m-0">
@@ -279,7 +279,7 @@ export default function Pool() {
         </div>
       </div>
 
-      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="exposure-section">
+      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="exposure-section">
         <p className="font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">{`Active Pool Risk & Exposure Breakdown`}</p>
         <div className="peril-glass border border-solid content-stretch flex flex-col items-start relative rounded-[12px] shrink-0 w-full" data-name="table-box">
           <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex font-serif font-semibold items-start leading-[normal] not-italic p-[16px] relative shrink-0 text-[#67626f] text-[13px] w-full">

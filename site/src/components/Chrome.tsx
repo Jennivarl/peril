@@ -40,7 +40,7 @@ export function Header({ active }: { active: string }) {
   };
 
   return (
-    <div className="bg-[#faf8fd] content-stretch flex h-[72px] items-center justify-between px-[40px] relative shrink-0 w-full" data-name="shared-header">
+    <div className="bg-[#faf8fd] content-stretch flex lg:h-[72px] items-center justify-between px-[16px] lg:px-[40px] relative shrink-0 w-full flex-wrap gap-y-[10px] py-[12px] lg:py-0" data-name="shared-header">
       <div className="content-stretch flex gap-[16px] items-center relative shrink-0" data-name="brand-group">
         <a href="#/" className="content-stretch flex gap-[8px] items-center relative shrink-0 no-underline" data-name="wordmark">
           {/* Option 08: one word, two halves. The risk in ink, the cover in violet. */}
@@ -51,7 +51,7 @@ export function Header({ active }: { active: string }) {
           <span className="bg-[#16141b] h-[9px] inline-block self-end mb-[7px] w-[9px]" aria-hidden="true" />
         </a>
       </div>
-      <nav className="bg-[#faf8fd] border border-[#e3ddf0] border-solid content-stretch flex gap-[4px] items-start p-[4px] relative rounded-[8px] shrink-0" data-name="nav-tabs">
+      <nav className="bg-[#faf8fd] border border-[#e3ddf0] border-solid content-stretch flex gap-[4px] items-start p-[4px] relative rounded-[8px] shrink-0 order-3 lg:order-none w-full lg:w-auto overflow-x-auto peril-scroll" data-name="nav-tabs">
         {(account ? [...TABS, ACCOUNT_TAB] : TABS).map((t) => {
           const on = t.path === active;
           return (
@@ -163,7 +163,7 @@ export function TxTracker() {
           : { text: "CHECKING", tone: "border-[#aca7b8] text-[#67626f] bg-transparent" };
 
   return (
-    <div className="bg-[rgba(247,243,232,0.9)] border-[rgba(22,20,27,0.1)] border-b border-solid content-stretch flex items-center justify-between px-[40px] py-[12px] relative shrink-0 w-full" data-name="tx-tracker">
+    <div className="bg-[rgba(247,243,232,0.9)] border-[rgba(22,20,27,0.1)] border-b border-solid content-stretch flex items-center justify-between px-[16px] lg:px-[40px] py-[12px] relative shrink-0 w-full" data-name="tx-tracker">
       <div className="[word-break:break-word] content-stretch flex font-mono font-normal gap-[10px] items-center leading-[normal] relative shrink-0 text-[11px] whitespace-nowrap" data-name="tracker-left">
         <p className="relative shrink-0 text-[#67626f] uppercase m-0">Consensus lifecycle</p>
         <span className={`${pill.tone} border border-solid px-[8px] py-[2px] rounded-[100px] text-[10px] tracking-[0.04em]`} data-name="status-pill">
@@ -211,7 +211,7 @@ export function TxTracker() {
 
 export function Footer() {
   return (
-    <div className="[word-break:break-word] bg-[#faf8fd] content-stretch flex font-mono font-normal items-center justify-between leading-[normal] mt-auto px-[40px] py-[32px] relative shrink-0 text-[12px] w-full whitespace-nowrap" data-name="footer">
+    <div className="[word-break:break-word] bg-[#faf8fd] content-stretch flex font-mono font-normal justify-between leading-[normal] mt-auto px-[16px] lg:px-[40px] py-[32px] relative shrink-0 text-[12px] w-full whitespace-normal lg:whitespace-nowrap flex-col lg:flex-row gap-[10px] items-start lg:items-center" data-name="footer">
       <p className="relative shrink-0 text-[#67626f] m-0">
         PERIL Parametric Downtime Protection © 2026. GenLayer Studio Next. Testnet GEN, no dollar value.{" "}
         <a href={REPO} target="_blank" rel="noreferrer" className="text-[#67626f] underline">Source</a>

@@ -100,7 +100,7 @@ export default function PolicyDetail() {
           const over = Math.max(0, p.minutes - p.threshold_minutes) / scale;
           const incidentPage = `https://${p.host}/incidents/${p.incident_id}`;
           return (
-            <div className="content-stretch flex gap-[32px] items-start p-[40px] relative shrink-0 w-full" data-name="detail-content">
+            <div className="content-stretch flex flex-col lg:flex-row gap-[32px] items-stretch lg:items-start p-[40px] relative shrink-0 w-full" data-name="detail-content">
               <div className="content-stretch flex flex-[1_0_0] flex-col gap-[24px] items-start min-w-px relative" data-name="detail-main">
                 <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full" data-name="detail-meta-header">
                   <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
@@ -119,7 +119,7 @@ export default function PolicyDetail() {
                   </p>
                 </div>
 
-                <div className="[word-break:break-word] content-stretch flex gap-[16px] items-start leading-[normal] relative shrink-0 w-full whitespace-nowrap" data-name="params-grid">
+                <div className="[word-break:break-word] content-stretch flex flex-col lg:flex-row gap-[16px] items-stretch lg:items-start leading-[normal] relative shrink-0 w-full whitespace-nowrap" data-name="params-grid">
                   <Card n={0} label="Premium Paid" value={`${gen(p.premium)} GEN`} />
                   <Card n={1} label="Payout Multiple" value={`${p.multiple}x`} />
                   <Card n={2} label="Payout If It Triggers" value={`${gen(p.payout)} GEN`} />

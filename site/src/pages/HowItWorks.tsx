@@ -108,7 +108,7 @@ export default function HowItWorks() {
     <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-how-it-works">
       <Header active="/how" />
 
-      <div className="content-stretch flex flex-col gap-[16px] items-center pb-[40px] pt-[48px] px-[120px] relative shrink-0 w-full" data-name="how-hero">
+      <div className="content-stretch flex flex-col gap-[16px] items-center pb-[40px] pt-[48px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="how-hero">
         <div className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start px-[12px] py-[4px] relative rounded-[100px] shrink-0">
           <p className="font-mono font-bold leading-[normal] relative shrink-0 text-accent-text text-[11px] whitespace-nowrap m-0">DETERMINISTIC CONSENSUS DESIGN</p>
         </div>
@@ -118,9 +118,9 @@ export default function HowItWorks() {
         </p>
       </div>
 
-      <div className="[word-break:break-word] content-stretch flex flex-col gap-[20px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="stages-strip">
+      <div className="[word-break:break-word] content-stretch flex flex-col gap-[20px] items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="stages-strip">
         <p className="font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">End-to-End Parametric Lifecycle</p>
-        <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="stages-grid">
+        <div className="content-stretch flex flex-col lg:flex-row gap-[16px] items-stretch lg:items-start relative shrink-0 w-full" data-name="stages-grid">
           <StageCard n="01" title="Buy Policy">You pay a premium in GEN and choose a service, an outage length, and a UTC window that starts tomorrow at the earliest.</StageCard>
           <StageCard n="02" title="Incident Query">{"When an outage happens, anyone makes a claim with its incident id. Each validator fetches that one record from the provider's status API."}</StageCard>
           <StageCard n="03" title="Calculate Duration">The contract subtracts start from end in whole minutes, rounded down, and checks the provider rated it major or critical.</StageCard>
@@ -129,7 +129,7 @@ export default function HowItWorks() {
         </div>
       </div>
 
-      <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="anatomy-consensus">
+      <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="anatomy-consensus">
         <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="json-anatomy">
           <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-[#16141b] w-full m-0">Downtime API Field Anatomy</p>
           <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#67626f] text-[13px] w-full m-0">
@@ -187,7 +187,7 @@ export default function HowItWorks() {
         </div>
       </div>
 
-      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="case-study-section">
+      <div className="content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[20px] lg:px-[120px] relative shrink-0 w-full" data-name="case-study-section">
         <p className="font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">Fully Worked Case Study: Incident {EXAMPLE.id}</p>
         <div className="peril-glass border border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full" data-name="case-study-box">
           <div className="content-stretch flex items-center justify-between relative shrink-0 w-full gap-[16px]">
@@ -204,7 +204,7 @@ export default function HowItWorks() {
             )}
           </div>
 
-          <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="math-grid">
+          <div className="content-stretch flex flex-col lg:flex-row gap-[16px] items-stretch lg:items-start relative shrink-0 w-full" data-name="math-grid">
             <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[10px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name="arithmetic-card">
               <p className="font-mono font-normal leading-[normal] relative shrink-0 text-[#67626f] text-[11px] whitespace-nowrap m-0">DOWNTIME ARITHMETIC</p>
               <div className="content-stretch flex flex-col font-serif font-normal gap-[4px] items-start not-italic relative shrink-0 text-[14px] text-[#16141b] w-full">
