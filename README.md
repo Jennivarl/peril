@@ -273,6 +273,12 @@ loss ratio are the margin for that; they are not a proof of solvency.
 **Windows are capped at seven days** and cover can be bought at most thirty
 days ahead, because the price table only assumes that much exposure.
 
+**Closing has no grace period.** `close` is allowed from the day a window
+ends. An outage that began inside the window but is still running then
+cannot be claimed until the provider resolves it, and in that gap anyone can
+close the policy. A few days' grace before `close` would fix this; it needs a
+new deployment, so it is stated here instead.
+
 ## What comes next: paying out in USDC on Arc
 
 GEN is a test token, and the people who would buy outage cover (dev teams,

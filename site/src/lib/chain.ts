@@ -256,7 +256,16 @@ export async function readPolicyIds(): Promise<string[]> {
 }
 
 export async function readPolicy(id: string): Promise<Policy> {
-  const p = await view<Record<string, unknown>>("get_policy", [id]);
+  let p: Record<string, unknown>;
+  try {
+    p = await view<Record<string, unknown>>("get_policy", [id]);
+  } catch (e) {
+    // Studio Next reports a missing key only as "execution failed", so the
+    // list of ids is what tells a missing policy apart from a failed read.
+    const ids = await readPolicyIds().catch(() => null);
+    if (ids && !ids.includes(id.trim().toLowerCase())) throw new Error("not found");
+    throw e;
+  }
   return {
     ...(p as unknown as Policy),
     premium: asWei(p.premium),

@@ -207,6 +207,7 @@ export default function Limits() {
             "Outages the provider never posts on its status page.",
             "DNS, routing or client-side connection problems.",
             "Cloudflare and OpenAI: they publish no history to price from.",
+            "An outage still running when the window ends: anyone can close the policy from that day, before the outage is resolved and claimed.",
           ]}
         />
         <List

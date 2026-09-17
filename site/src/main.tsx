@@ -50,16 +50,21 @@ function currentPath(): string {
 
 function App() {
   const [path, setPath] = useState(currentPath);
+  const [address, setAddress] = useState(() => window.location.hash);
   useEffect(() => {
     const onHash = () => {
       setPath(currentPath());
+      setAddress(window.location.hash);
       window.scrollTo(0, 0);
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
   const Page = ROUTES[path] ?? Home;
-  return <Page />;
+  // Keyed by the whole address, so a page that reads ?id=, ?cover= or
+  // ?holder= starts over when only that part changes, instead of showing
+  // what the previous link asked for.
+  return <Page key={address} />;
 }
 
 /**
