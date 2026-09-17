@@ -5,32 +5,42 @@
      sentences, IBM Plex Mono for the logo, numbers, data and buttons. */
   --font-serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* The wordmark only. Same family as the serif and mono already in use. */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 
   /*
-   * Cyber Amber replaces the Figma file's #00ff9d everywhere. It measures
-   * 9.0:1 on the page (#090a0c) and 8.4:1 on cards (#121418), so one value
-   * works for text, borders and fills. Text ON an amber fill is dark
-   * #090a0c (9.0:1); white on amber would be far worse.
+   * Ink and purple on cream, and nothing else. Green was pulled out: with
+   * violet already carrying committed cover, a second bright hue fought it.
+   * Ink now carries structure and "free"; purple carries emphasis.
    */
-  --color-accent: #ff9500;
-  --color-accent-line: #ff9500;
-  --color-accent-text: #ff9500;
-  --color-accent-tint: rgba(255, 149, 0, 0.12);
-  /* The two dark green panel tints from the design, in amber. */
-  --color-accent-deep: #2b1d08;
-  --color-accent-deeper: #221a0b;
+  --color-accent: #16141b;
+  --color-accent-line: rgba(22, 20, 27, 0.22);
+  --color-accent-text: #16141b;
+  --color-accent-tint: rgba(22, 20, 27, 0.05);
+  /* The two panel tints from the design, as warm neutrals. */
+  --color-accent-deep: #f1edfa;
+  --color-accent-deeper: #f6f3fc;
+
+  /*
+   * Vivid violet, the one accent: money already committed, and every primary
+   * action. Bright for fills and bars, darkened for text on cream (5.2:1).
+   */
+  --color-flare: #7c3aed;
+  --color-flare-text: #5b21b6;
+  --color-flare-tint: rgba(124, 58, 237, 0.12);
+  --color-flare-deep: #f1ebfd;
 }
 
 html,
 body,
 #root {
-  background: #090a0c;
+  background: #faf8fd;
   min-height: 100%;
 }
 
 body {
   margin: 0;
-  color: #ffffff;
+  color: #16141b;
   font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -44,55 +54,48 @@ button:disabled {
   cursor: not-allowed;
 }
 
-@keyframes peril-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
-.peril-pulse {
-  animation: peril-pulse 1.6s ease-in-out infinite;
-}
-
 /* Glows are wider than their sections; never let them scroll the page sideways. */
 #root {
   overflow-x: clip;
 }
 
 /*
- * Glass cards. Nearly transparent, so the amber glows behind a section show
- * through the blur; the page ground stays #090a0c, so text contrast on a
- * card is unchanged.
+ * Glass cards. On a light ground the card lifts off the page rather than
+ * sinking into it: a wash of white over the cream, blurred, with a soft ink
+ * edge and a shadow to separate it from the paper.
  */
 .peril-glass {
-  background: rgba(255, 255, 255, 0.03);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-color: rgba(22, 20, 27, 0.12);
+  box-shadow: 0 1px 2px rgba(22, 20, 27, 0.04);
 }
 
-/* A soft amber light behind a section. Decorative only. */
+/* A soft violet light behind a section. Decorative only. */
 .peril-glow {
   position: absolute;
   pointer-events: none;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgba(255, 149, 0, 0.16) 0%, rgba(255, 149, 0, 0) 70%);
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.16) 0%, rgba(124, 58, 237, 0) 70%);
   filter: blur(80px);
   z-index: 0;
 }
 
 /* Bento tiles lift slightly and pick up the accent on hover. */
 .peril-lift {
-  transition: transform 0.18s ease, border-color 0.18s ease;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .peril-lift:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 149, 0, 0.45);
+  border-color: rgba(124, 58, 237, 0.55);
+  box-shadow: 0 6px 16px rgba(22, 20, 27, 0.08);
 }
 
 /* Free share of the pool, drawn under the capacity figure. */
 .peril-capacity {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(22, 20, 27, 0.08);
   border-radius: 9999px;
   height: 4px;
   overflow: hidden;
@@ -100,7 +103,8 @@ button:disabled {
 }
 
 .peril-capacity-fill {
-  background: linear-gradient(90deg, #ff9500 0%, #ffc56b 100%);
+  /* Capacity is free money, so it takes the ink ramp, never the purple. */
+  background: linear-gradient(90deg, #16141b 0%, #454250 100%);
   border-radius: 9999px;
   height: 100%;
   transition: width 0.6s ease;
@@ -108,13 +112,209 @@ button:disabled {
 
 /* Consensus stepper: nodes the transaction has reached glow. */
 .peril-node-on {
-  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.15), 0 0 10px rgba(255, 149, 0, 0.6);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18), 0 0 8px rgba(124, 58, 237, 0.5);
+}
+
+/* The primary call to action, in the same violet-to-lavender ramp as the
+   locked side of the pool bar, so one purple runs through the whole site. */
+.peril-cta {
+  /*
+   * One definition for every primary action: same shape, padding and type.
+   * The gradient spans the button, so a wide form button keeps the full ramp
+   * instead of running out of purple and flattening into lavender.
+   */
+  background: linear-gradient(90deg, #6d28d9 0%, #a855f7 100%);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  padding: 12px 22px;
+  text-align: center;
+}
+
+/* Only the page's own calls to action get a wider bed; the wallet button in
+   the header hugs its label instead of stretching. */
+.peril-cta-wide {
+  min-width: 210px;
+}
+
+/* A card's own heading: the page's serif, set in caps. */
+.peril-card-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The quiet half of a pair of actions: same type as the button beside it. */
+.peril-link {
+  color: #16141b;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.peril-link:hover {
+  opacity: 1;
+}
+
+/*
+ * Cover already sold, drawn as a gradient rather than flat violet. Used for
+ * figures (as text) and for the locked part of a bar (as a fill), so the
+ * committed side of the pool reads as one thing wherever it appears. The
+ * text gradient stays dark enough to read on cream.
+ */
+.peril-grad-text {
+  /*
+   * Inline-block on purpose: a gradient fills its own box, so on a full
+   * width element only the dark left end lands on the text and the same
+   * figure looks different from page to page. Hugging the text keeps every
+   * committed figure identical wherever it appears.
+   */
+  display: inline-block;
+  background-image: linear-gradient(90deg, #5b21b6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.peril-grad-fill {
+  background-image: linear-gradient(90deg, #6d28d9 0%, #a855f7 100%);
+}
+
+/* The free side of a bar: ink, so free and committed never read alike. */
+.peril-grad-free {
+  background-image: linear-gradient(90deg, #16141b 0%, #454250 100%);
+}
+
+/*
+ * A full width band of ink under the cream page, the way a corporate site
+ * anchors its opening statement. Text on it is cream, not white.
+ */
+.peril-band {
+  background: #16141b;
+  color: #faf8fd;
+  position: relative;
+  overflow: hidden;
+}
+
+.peril-band-glow {
+  position: absolute;
+  pointer-events: none;
+  inset: auto 0 -40% 0;
+  height: 70%;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(124, 58, 237, 0.3) 0%, rgba(124, 58, 237, 0) 70%);
+}
+
+/* A filled step tile: ink, with the step number in lavender. */
+.peril-tile {
+  background: linear-gradient(160deg, #1b1826 0%, #16141b 100%);
+  border: 1px solid rgba(247, 243, 232, 0.1);
+  color: #faf8fd;
+}
+
+.peril-tile-num {
+  color: #c4b5fd;
+}
+
+/* A tick in a violet disc, for the short list beside the diagram. */
+.peril-check {
+  align-items: center;
+  background: rgba(124, 58, 237, 0.14);
+  border-radius: 9999px;
+  color: #5b21b6;
+  display: inline-flex;
+  flex: none;
+  font-size: 11px;
+  height: 18px;
+  justify-content: center;
+  width: 18px;
+}
+
+/*
+ * The wordmark: lowercase, tight and solid, the way a serious insurer sets
+ * its name. No gradient and no wide tracking; the name carries itself.
+ */
+.peril-wordmark {
+  color: #16141b;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* A small live mark: ink, quiet, no halo. */
+.peril-live-dot {
+  background: #16141b;
+  border-radius: 9999px;
+  display: inline-block;
+  height: 6px;
+  width: 6px;
+}
+
+/* A lit top edge for the one card that carries the protocol's live figures. */
+.peril-top-edge {
+  position: relative;
+}
+
+.peril-top-edge::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, #6d28d9 0%, #a855f7 100%);
+}
+
+/*
+ * Two counter-rotating rings, shown while a read or a signature is pending.
+ * Sized by font-size so it can sit inline in a button.
+ */
+.peril-ring {
+  display: inline-block;
+  position: relative;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.2em;
+}
+
+.peril-ring::before,
+.peril-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+}
+
+.peril-ring::before {
+  border-top-color: #7c3aed;
+  border-right-color: #7c3aed;
+  animation: peril-spin 0.9s linear infinite;
+}
+
+.peril-ring::after {
+  inset: 3px;
+  border-bottom-color: #16141b;
+  border-left-color: #16141b;
+  animation: peril-spin 1.4s linear infinite reverse;
+}
+
+@keyframes peril-spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .peril-pulse {
-    animation: none;
+  .peril-ring::before,
+  .peril-ring::after {
+    animation-duration: 3s;
   }
+
 
   .peril-lift,
   .peril-capacity-fill {
@@ -125,3 +325,41 @@ button:disabled {
     transform: none;
   }
 }
+
+/* A provider disc in the constellation: a white tile lifted off the cream. */
+.peril-orb {
+  background: #ffffff;
+  border-radius: 9999px;
+  box-shadow: 0 14px 34px rgba(22, 20, 27, 0.1), 0 2px 6px rgba(22, 20, 27, 0.06);
+}
+
+/* The dashed orbits turn slowly, so the shape reads as alive without blinking. */
+.peril-orbit { animation: peril-orbit-spin 140s linear infinite; }
+@keyframes peril-orbit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .peril-orbit { animation: none; } }
+
+/* The hero's own call to action, given more weight than the ones in a row. */
+.peril-cta-lg {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  padding: 17px 34px;
+}
+
+/*
+ * The solvency bars, and only those: green is money the pool holds or has
+ * free, red is money already committed or owed. The same two colours mean the
+ * same two things on every bar that uses them.
+ */
+.peril-grad-good {
+  background-image: linear-gradient(90deg, #15803d 0%, #22c55e 100%);
+}
+
+.peril-grad-risk {
+  background-image: linear-gradient(90deg, #b91c1c 0%, #ef4444 100%);
+}
+
+/* A list that is taller than its card scrolls inside it. */
+.peril-scroll { scrollbar-width: thin; scrollbar-color: rgba(22, 20, 27, 0.22) transparent; }
+.peril-scroll::-webkit-scrollbar { width: 6px; }
+.peril-scroll::-webkit-scrollbar-thumb { background: rgba(22, 20, 27, 0.22); border-radius: 3px; }
+.peril-scroll::-webkit-scrollbar-track { background: transparent; }

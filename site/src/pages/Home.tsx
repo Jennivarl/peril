@@ -1,241 +1,271 @@
-import { Footer, Header, TxTracker } from "../components/Chrome";
+import { Footer, Header } from "../components/Chrome";
 import { ProviderIcon } from "../components/ProviderIcon";
-import { day, gen, hours, readCovered, readPolicies, readReserves, todayUtc, type Policy } from "../lib/chain";
-import { SERIOUS_OUTAGES_12M, serviceName } from "../lib/evidence";
+import { day, gen, hours, readCovered, readPolicies, readProviderStatuses, todayUtc, type Policy, type ProviderStatus } from "../lib/chain";
+import { FALLBACK_SERVICES, SEEN, SNAPSHOT, TIERS, serviceName } from "../lib/evidence";
 import { usePolled } from "../lib/hooks";
 
 /**
- * The Figma home frame, wired to the live contract. Every figure is read from
- * the chain, and copy that claimed things the contract does not do has been
- * corrected. Styled with glass cards, amber glows and a bento grid.
+ * The landing page, wired to the live contract. Every figure is read from the
+ * chain; the only fixed numbers are in the worked example, which says so, and
+ * in the list of transactions this contract has already executed.
  */
 
 const BADGE = {
   accent: "bg-accent-tint border-accent-line text-accent-text",
-  blue: "bg-[rgba(138,180,248,0.1)] border-[#8ab4f8] text-[#8ab4f8]",
-  grey: "bg-[#1c1f26] border-[#4b5563] text-[#9ca3af]",
+  info: "bg-[rgba(124,58,237,0.12)] border-[#6d28d9] text-[#5b21b6]",
+  grey: "bg-[#e9e4f4] border-[#aca7b8] text-[#67626f]",
 };
 
 function policyStatus(p: Policy): { label: string; tone: keyof typeof BADGE } {
   if (p.state === "paid") return { label: "PAID", tone: "accent" };
   if (p.state === "closed") return { label: "CLOSED", tone: "grey" };
   const today = todayUtc();
-  if (today < p.window_start) return { label: "PENDING", tone: "blue" };
+  if (today < p.window_start) return { label: "PENDING", tone: "info" };
   if (today < p.window_end) return { label: "ACTIVE", tone: "accent" };
   return { label: "ENDED", tone: "grey" };
 }
 
-function Stat({ name, label, value, sub, bar }: { name: string; label: string; value: string; sub: string; bar?: number | null }) {
+function StepTile({ n, title, children }: { n: string; title: string; children: string }) {
   return (
-    <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0" data-name={name}>
-      <p className="font-mono font-normal relative shrink-0 text-[#9ca3af] text-[11px] m-0">{label}</p>
-      <p className="font-mono font-extrabold relative shrink-0 text-accent-text text-[24px] m-0">{value}</p>
-      <p className="font-serif font-normal not-italic relative shrink-0 text-[#4b5563] text-[12px] m-0">{sub}</p>
-      {bar !== undefined && (
-        <div className="peril-capacity mt-[6px]" role="img" aria-label={bar === null ? "Free share of the pool not known yet" : `${bar.toFixed(1)}% of the pool is free`}>
-          <div className="peril-capacity-fill" style={{ width: `${bar ?? 0}%` }} />
-        </div>
-      )}
+    <div className="peril-tile content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[28px] relative rounded-[12px]" data-name={`step-${n}`}>
+      <p className="font-mono font-bold leading-[normal] peril-tile-num relative shrink-0 text-[11px] tracking-[0.12em] whitespace-nowrap m-0">STEP {n}</p>
+      <p className="font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[19px] m-0">{title}</p>
+      <p className="font-serif font-normal leading-[22px] not-italic opacity-80 relative shrink-0 text-[14px] m-0">{children}</p>
     </div>
   );
 }
 
-function Principle({ n, title, children }: { n: string; title: string; children: string }) {
+function Check({ children }: { children: string }) {
   return (
-    <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[28px] relative rounded-[12px]" data-name={`principle-${n}`}>
-      <p className="font-mono font-extrabold leading-[normal] relative shrink-0 text-accent-text text-[14px] whitespace-nowrap m-0">[{n}]</p>
-      <p className="font-serif font-bold leading-[normal] not-italic relative shrink-0 text-[20px] text-white whitespace-nowrap m-0">{title}</p>
-      <p className="font-serif font-normal leading-[22px] min-w-full not-italic relative shrink-0 text-[#9ca3af] text-[14px] w-[min-content] m-0">{children}</p>
-    </div>
-  );
-}
-
-function Step({ n, title, children }: { n: string; title: string; children: string }) {
-  return (
-    <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name={`step-card-${n}`}>
-      <div className="content-stretch flex items-center justify-between leading-[normal] relative shrink-0 w-full whitespace-nowrap" data-name="Frame">
-        <p className="font-serif font-extrabold not-italic relative shrink-0 text-[14px] text-white m-0">{title}</p>
-        <p className="font-mono font-normal relative shrink-0 text-accent-text text-[12px] m-0">[{n}]</p>
-      </div>
-      <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">{children}</p>
-    </div>
+    <li className="content-stretch flex gap-[10px] items-start relative shrink-0">
+      <span className="peril-check mt-[2px]" aria-hidden="true">✓</span>
+      <span className="font-serif font-normal leading-[22px] not-italic text-[#16141b] text-[15px]">{children}</span>
+    </li>
   );
 }
 
 function LedgerNote({ children }: { children: string }) {
   return (
-    <div className="border-[rgba(255,255,255,0.06)] border-t border-solid content-stretch flex items-start p-[16px] relative shrink-0 w-full">
-      <p className="font-mono font-normal leading-[normal] relative text-[#9ca3af] text-[13px] m-0">{children}</p>
+    <div className="border-[rgba(22,20,27,0.1)] border-t border-solid content-stretch flex items-start p-[16px] relative shrink-0 w-full">
+      <p className="font-mono font-normal leading-[normal] relative text-[#67626f] text-[13px] m-0">{children}</p>
     </div>
   );
 }
 
+/**
+ * The three claims the landing page makes. Each carries its own tint, rule and
+ * numeral, and links to the page that backs it up, so the row is a set rather
+ * than three identical boxes.
+ */
+const ARGUMENT = [
+  {
+    n: "01",
+    title: "The provider is the source",
+    body: "A claim is decided on the provider's own published incident, and every validator fetches that record separately before it counts.",
+    link: "How a claim is decided",
+    href: "#/how",
+    bg: "#f4efff",
+    edge: "linear-gradient(90deg, #6d28d9 0%, #a855f7 100%)",
+    numeral: "rgba(109, 40, 217, 0.16)",
+    ink: "#16141b",
+    muted: "#67626f",
+    accent: "#6d28d9",
+  },
+  {
+    n: "02",
+    title: "No claims process",
+    body: "Anyone can file, including a stranger. If the fields clear the threshold you bought, nobody can refuse it or change who is paid.",
+    link: "What it cannot do",
+    href: "#/limits",
+    bg: "#efe9fb",
+    edge: "linear-gradient(90deg, #5b21b6 0%, #8b5cf6 100%)",
+    numeral: "rgba(91, 33, 182, 0.16)",
+    ink: "#16141b",
+    muted: "#67626f",
+    accent: "#6d28d9",
+  },
+  {
+    n: "03",
+    title: "Open capital, published price",
+    body: "Anyone can fund the pool and earn premiums, and every price comes from twelve months of that provider's own history.",
+    link: "Inside the pool",
+    href: "#/pool",
+    bg: "#16141b",
+    edge: "linear-gradient(90deg, #a855f7 0%, #6d28d9 100%)",
+    numeral: "rgba(196, 181, 253, 0.18)",
+    ink: "#faf8fd",
+    muted: "rgba(247, 243, 232, 0.7)",
+    accent: "#c4b5fd",
+  },
+];
+
 export default function Home() {
-  const reserves = usePolled(readReserves, 60000);
   const covers = usePolled(readCovered, 0);
   const policies = usePolled(readPolicies, 60000);
+  // The providers' own status pages, read straight from the browser. These are
+  // their words, not a claim by PERIL that anything is being monitored.
+  // The board draws from the contract when it answers, and from the deployed
+  // registry when it does not, so a rate limit never leaves the page blank.
+  const board = covers.data ?? FALLBACK_SERVICES.map((f) => ({
+    cover: f.cover,
+    host: f.host,
+    serious: [],
+    max_window_days: 7,
+    multiples: { [String(f.cheapest)]: f.multiple },
+  }));
 
-  const r = reserves.data;
-  const unknown = reserves.error && !r ? "unavailable" : "…";
-  const open = policies.data?.filter((p) => p.state === "open").length;
-  const freeShare = r && BigInt(r.pool) > 0n ? Number((BigInt(r.free) * 10000n) / BigInt(r.pool)) / 100 : null;
-  const freePct = r ? (freeShare === null ? "nothing in the pool yet" : `${freeShare.toFixed(1)}% of the pool is free`) : "…";
+  // Hosts come from the board, not from the chain read: whether a provider's
+  // status page answers has nothing to do with whether Studio Next did.
+  const hosts = board.map((c) => c.host);
+  const hostKey = hosts.join(",");
+  const statuses = usePolled<Record<string, ProviderStatus>>(() => readProviderStatuses(hosts), 300000, [hostKey]);
+
+  // True only when at least one provider actually answered just now.
+  // How many of them say nothing is wrong, from their own pages.
+
 
   return (
-    <div className="bg-[#090a0c] content-stretch flex flex-col items-start relative size-full" data-name="peril-home">
+    <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-home">
       <Header active="/" />
-      <TxTracker />
 
-      <div className="content-stretch flex flex-col gap-[24px] items-center pb-[64px] pt-[80px] px-[120px] relative shrink-0 w-full" data-name="hero-section">
-        <div className="peril-glow left-1/2 top-[20px] -translate-x-1/2 h-[360px] w-[720px]" aria-hidden="true" />
-        <div className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start px-[12px] py-[4px] relative rounded-[100px] shrink-0" data-name="pill-tag">
-          <p className="[word-break:break-word] font-mono font-bold leading-[normal] relative shrink-0 text-accent-text text-[12px] whitespace-nowrap m-0">
-            PARAMETRIC OUTAGE COVER ON GENLAYER
+      <div className="content-stretch flex flex-col gap-[26px] items-center px-[120px] pt-[104px] pb-[56px] relative shrink-0 w-full" data-name="hero">
+        <div className="peril-glow left-1/2 top-[0px] -translate-x-1/2 h-[420px] w-[820px]" aria-hidden="true" />
+        <h1 className="[word-break:break-word] font-serif font-extrabold leading-[56px] not-italic relative shrink-0 text-[48px] text-center text-[#16141b] max-w-[820px] m-0">
+          Downtime cover, settled by pure arithmetic.
+        </h1>
+        <p className="[word-break:break-word] font-serif font-normal leading-[27px] not-italic relative shrink-0 text-[#67626f] text-[17px] text-center max-w-[620px] m-0">
+          {"Cover for the services your work depends on. When one of them publishes an outage long enough to break the threshold you bought, the pool pays you."}
+        </p>
+        <div className="content-stretch flex gap-[24px] items-center mt-[14px] relative shrink-0" data-name="hero-ctas">
+          <a href="#/explore" className="peril-cta peril-cta-wide peril-cta-lg content-stretch flex items-start relative shrink-0 no-underline" data-name="cta-primary">
+            EXPLORE COVERED SERVICES
+          </a>
+          <a href="#/pool" className="peril-link relative shrink-0 opacity-70 hover:opacity-100" data-name="cta-secondary">
+            PROVIDE LIQUIDITY
+          </a>
+        </div>
+
+      </div>
+
+      <div className="content-stretch flex flex-col gap-[36px] items-center px-[120px] pt-[52px] pb-[104px] relative shrink-0 w-full" data-name="argument">
+        <div className="peril-glow left-[-160px] top-[20px] h-[400px] w-[520px]" aria-hidden="true" />
+        <div className="content-stretch flex flex-col gap-[10px] items-center relative shrink-0">
+          <h2 className="font-serif font-extrabold leading-[44px] not-italic relative shrink-0 text-[37px] text-center text-[#16141b] max-w-[720px] m-0">
+            {"What we took out of insurance."}
+          </h2>
+          <p className="font-serif font-normal leading-[24px] not-italic relative shrink-0 text-[#67626f] text-[15px] text-center max-w-[600px] m-0">
+            {"Insurance keeps three things for itself: who takes the measurement, who holds the money, and who is allowed to say no. PERIL keeps none of them."}
           </p>
         </div>
-        <h1 className="[word-break:break-word] font-serif font-extrabold leading-[60px] not-italic relative shrink-0 text-[52px] text-center text-white w-[880px] m-0">
-          No claim forms. No assessors. Automated service downtime cover.
-        </h1>
-        <p className="[word-break:break-word] font-serif font-normal leading-[28px] not-italic relative shrink-0 text-[#9ca3af] text-[18px] text-center w-[700px] m-0">
-          {"Validators read the provider's own status page, measure the outage, and pay your wallet when it breaks the threshold you bought. Nobody approves the claim, and nobody can refuse it."}
-        </p>
-      </div>
 
-      <div className="[word-break:break-word] content-stretch flex gap-[24px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="principles-container">
-        <Principle n="01" title="Parametric Triggers">
-          {"No human adjusters. Your cover pays when the provider's own status page shows an outage it rated major or critical, lasting at least the threshold you chose."}
-        </Principle>
-        <Principle n="02" title="Deterministic Consensus">
-          GenLayer validators each fetch the incident themselves and agree on four fields: its id, when it started, when it ended, and its severity.
-        </Principle>
-        <Principle n="03" title="Automatic Settlement">
-          The payout is fixed when you buy and locked in the pool. When a claim qualifies it goes to your wallet, and nobody can change who is paid or how much.
-        </Principle>
-      </div>
-
-      <div className="[word-break:break-word] bg-[#0d1117] border-[#1e222a] border-b border-solid border-t content-stretch flex items-start justify-between leading-[normal] overflow-hidden px-[120px] py-[24px] relative shrink-0 w-full whitespace-nowrap" data-name="reserves-ribbon">
-        <div className="peril-glow right-[40px] top-[-120px] h-[260px] w-[420px]" aria-hidden="true" />
-        <Stat name="stat-0" label="TOTAL POOL SIZE" value={r ? `${gen(r.pool)} GEN` : unknown} sub="Testnet GEN, no dollar value" />
-        <Stat
-          name="stat-1"
-          label="ACTIVE COVERAGE"
-          value={r ? `${gen(r.locked)} GEN` : unknown}
-          sub={open === undefined ? "…" : `${open} open ${open === 1 ? "policy" : "policies"}`}
-        />
-        <Stat name="stat-2" label="AVAILABLE CAPACITY" value={r ? `${gen(r.free)} GEN` : unknown} sub={freePct} bar={r ? freeShare : null} />
-      </div>
-
-      <div className="content-stretch flex flex-col gap-[24px] items-start pb-[80px] pt-[80px] px-[120px] relative shrink-0 w-full" data-name="matrix-section">
-        <div className="peril-glow left-[-120px] top-[160px] h-[420px] w-[520px]" aria-hidden="true" />
-        <div className="[word-break:break-word] content-stretch flex items-center justify-between leading-[normal] relative shrink-0 w-full whitespace-nowrap" data-name="Frame">
-          <div className="content-stretch flex flex-col gap-[6px] items-start relative shrink-0" data-name="Frame">
-            <p className="font-mono font-normal relative shrink-0 text-accent-text text-[12px] m-0">AVAILABLE COVERAGE TARGETS</p>
-            <p className="font-serif font-extrabold not-italic relative shrink-0 text-[28px] text-white m-0">{`Supported Providers & Live Rates`}</p>
-          </div>
-          <p className="font-serif font-normal not-italic relative shrink-0 text-[#9ca3af] text-[14px] m-0">Pick a provider to set up cover</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-[16px] relative sm:grid-cols-2 lg:grid-cols-6 w-full" data-name="bento-grid">
-          {!covers.data && (
-            <p className="col-span-full font-mono text-[#9ca3af] text-[13px] m-0">
-              {covers.error ? `Could not read the price list from Studio Next: ${covers.error}` : "Reading the price list from Studio Next…"}
-            </p>
-          )}
-          {covers.data?.map((c, i) => {
-            const tiers = Object.keys(c.multiples).map(Number).sort((a, b) => a - b);
-            const cheapest = tiers[0];
-            return (
-              <div
-                key={c.cover}
-                className={`peril-glass peril-lift border border-solid content-stretch flex flex-col gap-[16px] items-start p-[24px] relative rounded-[12px] ${i < 2 ? "lg:col-span-3" : "lg:col-span-2"}`}
-                data-name={`shop-card-${c.cover}`}
+        <div className="content-stretch flex gap-[22px] items-stretch relative shrink-0 w-full">
+          {ARGUMENT.map((card) => (
+            <div
+              key={card.n}
+              className="content-stretch flex flex-[1_0_0] flex-col gap-[10px] items-start min-w-px overflow-hidden p-[30px] peril-lift relative rounded-[18px]"
+              style={{ background: card.bg }}
+            >
+              <span className="absolute h-[4px] left-0 top-0 w-full" style={{ background: card.edge }} aria-hidden="true" />
+              <span
+                className="absolute font-serif font-extrabold leading-none right-[22px] text-[58px] top-[20px]"
+                style={{ color: card.numeral }}
+                aria-hidden="true"
               >
-                <div className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] border-solid content-stretch flex items-center justify-center relative rounded-[10px] shrink-0 size-[44px]" data-name="card-icon">
-                  <ProviderIcon cover={c.cover} />
-                </div>
-                <div className="[word-break:break-word] content-stretch flex flex-col gap-[4px] items-start leading-[normal] relative shrink-0 whitespace-nowrap" data-name="card-meta">
-                  <p className="font-serif font-bold not-italic relative shrink-0 text-[18px] text-white m-0">{serviceName(c.cover)}</p>
-                  <p className="font-mono font-normal relative shrink-0 text-[#9ca3af] text-[12px] m-0">{c.host}</p>
-                </div>
-                <div className="content-stretch flex flex-wrap gap-[6px] items-start relative shrink-0 w-full" data-name="badges-group">
-                  <div className="bg-[#201315] border border-[#ff3b30] border-solid content-stretch flex items-start px-[8px] py-[4px] relative rounded-[4px] shrink-0" data-name="badge-1" title="Incidents the provider itself rated major or critical, last 12 months">
-                    <p className="[word-break:break-word] font-mono font-normal leading-[normal] relative shrink-0 text-[#ff3b30] text-[11px] whitespace-nowrap m-0">
-                      {SERIOUS_OUTAGES_12M[c.cover] ?? "?"} serious / 12mo
-                    </p>
-                  </div>
-                  {cheapest !== undefined && (
-                    <div className="bg-accent-deep border border-accent-line border-solid content-stretch flex items-start px-[8px] py-[4px] relative rounded-[4px] shrink-0" data-name="badge-2" title="The shortest outage length this service is sold at">
-                      <p className="[word-break:break-word] font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[11px] whitespace-nowrap m-0">
-                        {hours(cheapest)}+ pays {c.multiples[String(cheapest)]}x
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <a href={`#/buy?cover=${c.cover}`} className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] content-stretch flex items-start justify-center mt-auto py-[10px] relative rounded-[6px] shrink-0 w-full no-underline" data-name="card-action">
-                  <span className="[word-break:break-word] font-mono font-bold leading-[normal] relative shrink-0 text-[12px] text-white whitespace-nowrap">GET COVER</span>
-                </a>
-              </div>
-            );
-          })}
+                {card.n}
+              </span>
 
-          <div className="col-span-full peril-glass peril-lift border border-solid content-stretch flex flex-col items-start overflow-hidden relative rounded-[12px] w-full" data-name="table-box">
-            <div className="content-stretch flex items-center justify-between px-[16px] pt-[16px] pb-[12px] relative shrink-0 w-full">
-              <p className="[word-break:break-word] font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">Active Ledger</p>
-              <p className="font-mono font-normal leading-[normal] relative shrink-0 text-[#4b5563] text-[11px] m-0">{policies.data ? `${policies.data.length} policies on chain` : ""}</p>
+              <p className="font-serif font-bold min-h-[52px] not-italic relative shrink-0 text-[18px] max-w-[220px] m-0" style={{ color: card.ink }}>
+                {card.title}
+              </p>
+              <p className="flex-[1_0_0] font-serif font-normal leading-[21px] not-italic relative text-[14px] m-0" style={{ color: card.muted }}>
+                {card.body}
+              </p>
+              <a
+                href={card.href}
+                className="font-mono font-bold relative shrink-0 text-[11px] no-underline whitespace-nowrap"
+                style={{ color: card.accent }}
+              >
+                {`${card.link.toUpperCase()} →`}
+              </a>
             </div>
-            <div className="[word-break:break-word] bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.06)] border-t border-solid content-stretch flex font-serif font-semibold items-start leading-[normal] not-italic p-[16px] relative shrink-0 text-[#9ca3af] text-[13px] w-full" data-name="table-head">
-              <p className="flex-[1_0_0] min-w-px relative m-0">POLICY ID</p>
-              <p className="flex-[1_0_0] min-w-px relative m-0">PROVIDER</p>
-              <p className="flex-[1_0_0] min-w-px relative m-0">WINDOW (UTC)</p>
-              <p className="flex-[1_0_0] min-w-px relative m-0">LIMIT</p>
-              <p className="flex-[1_0_0] min-w-px relative m-0">PAYOUT</p>
-              <p className="relative shrink-0 w-[100px] m-0">STATUS</p>
-            </div>
-            {!policies.data && (
-              <LedgerNote>{policies.error ? `Could not read the ledger from Studio Next: ${policies.error}` : "Reading the ledger from Studio Next…"}</LedgerNote>
-            )}
-            {policies.data?.length === 0 && <LedgerNote>No cover has been sold yet.</LedgerNote>}
-            {policies.data?.map((p) => {
-              const s = policyStatus(p);
+          ))}
+        </div>
+      </div>
+
+      {/*
+        The shape of each provider's own history, which is the whole basis of
+        the price: how many incidents it rated major or critical ran past each
+        length. Darker means it happened more often, and the rarer a length
+        is, the larger the multiple sold on it. Counts are the snapshot in
+        evidence.ts; nothing here is estimated.
+      */}
+      <div className="content-stretch flex flex-col items-center px-[120px] pb-[104px] relative shrink-0 w-full" data-name="record-section">
+        <div className="content-stretch flex flex-col gap-[12px] items-start relative shrink-0 w-full max-w-[880px]" data-name="record">
+          <div className="content-stretch flex items-baseline justify-between relative shrink-0 w-full">
+            <p className="peril-card-title relative shrink-0 text-[12px] text-[#16141b] m-0">How long their outages actually run</p>
+            <p className="font-mono relative shrink-0 text-[#787384] text-[11px] m-0">{SNAPSHOT.window.toUpperCase()}</p>
+          </div>
+
+          <div className="content-stretch flex gap-[10px] items-center pl-[186px] relative shrink-0 w-full">
+            {TIERS.map((t) => (
+              <p key={t} className="flex-[1_0_0] font-mono min-w-px relative text-[#787384] text-[11px] text-center m-0">{hours(t)}</p>
+            ))}
+            <span className="shrink-0 w-[92px]" />
+          </div>
+
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            {board.map((c) => {
+              const seen = SEEN[c.cover] ?? {};
+              const worst = Math.max(1, ...Object.values(SEEN).flatMap((r) => Object.values(r)));
+              const live = statuses.data?.[c.host];
+              const down = live !== undefined && live.indicator !== "none";
+              const tiers = Object.keys(c.multiples).map(Number).sort((a, b) => a - b);
               return (
-                <a key={p.policy_id} href={`#/policy?id=${encodeURIComponent(p.policy_id)}`} className="border-[rgba(255,255,255,0.06)] border-t border-solid content-stretch flex items-center p-[16px] relative shrink-0 w-full no-underline hover:bg-[rgba(255,255,255,0.03)]" data-name="row">
-                  <span className="[word-break:break-word] flex-[1_0_0] font-mono font-normal leading-[normal] min-w-px relative text-[13px] text-white">{p.policy_id}</span>
-                  <span className="[word-break:break-word] flex flex-[1_0_0] font-serif font-normal gap-[8px] items-center leading-[normal] min-w-px not-italic relative text-[13px] text-white">
-                    <ProviderIcon cover={p.cover} size={14} />
-                    {serviceName(p.cover)}
-                  </span>
-                  <span className="[word-break:break-word] flex-[1_0_0] font-mono font-normal leading-[normal] min-w-px relative text-[#9ca3af] text-[13px]">
-                    {day(p.window_start)} - {day(p.window_end)} UTC
-                  </span>
-                  <span className="[word-break:break-word] flex-[1_0_0] font-mono font-normal leading-[normal] min-w-px relative text-[#9ca3af] text-[13px]">{p.threshold_minutes} mins</span>
-                  <span className="[word-break:break-word] flex-[1_0_0] font-mono font-bold leading-[normal] min-w-px relative text-accent-text text-[13px]">{gen(p.payout)} GEN</span>
-                  <span className="content-stretch flex items-start relative shrink-0 w-[100px]" data-name="td-6">
-                    <span className={`${BADGE[s.tone]} border border-solid content-stretch flex items-start px-[8px] py-[2px] relative rounded-[4px] shrink-0`}>
-                      <span className="[word-break:break-word] font-mono font-normal leading-[normal] relative shrink-0 text-[11px] whitespace-nowrap">{s.label}</span>
+                <a
+                  key={c.cover}
+                  href="#/explore"
+                  className="border-[rgba(22,20,27,0.08)] border-b border-solid content-stretch flex gap-[10px] items-center no-underline py-[9px] relative shrink-0 w-full"
+                  title={live ? `${c.host} reports: ${live.description}` : c.host}
+                  data-name={`record-${c.cover}`}
+                >
+                  <span className="content-stretch flex gap-[11px] items-center shrink-0 w-[176px]">
+                    <span className="content-stretch flex items-center justify-center shrink-0 size-[24px]">
+                      <ProviderIcon cover={c.cover} size={21} />
                     </span>
+                    <span className="font-serif font-bold not-italic text-[15px] text-[#16141b]">{serviceName(c.cover)}</span>
+                    <span
+                      className={`${down ? "bg-[#7c3aed]" : live ? "bg-[rgba(22,20,27,0.28)]" : "bg-[rgba(22,20,27,0.1)]"} h-[6px] rounded-full shrink-0 w-[6px]`}
+                      aria-hidden="true"
+                    />
+                  </span>
+
+                  {TIERS.map((t) => {
+                    const count = seen[t] ?? 0;
+                    const alpha = count === 0 ? 0 : 0.2 + 0.8 * (count / worst);
+                    return (
+                      <span
+                        key={t}
+                        className={`${count === 0 ? "border border-[rgba(22,20,27,0.12)] border-dashed" : ""} flex-[1_0_0] content-stretch flex h-[38px] items-center justify-center min-w-px overflow-hidden relative rounded-[6px]`}
+                        title={`${count} ran ${hours(t)} or longer`}
+                      >
+                        <span className="absolute inset-0 peril-grad-fill" style={{ opacity: alpha }} aria-hidden="true" />
+                        <span className={`${count === 0 ? "text-[rgba(22,20,27,0.25)]" : "text-[#16141b]"} font-mono font-bold relative text-[13px]`}>{count}</span>
+                      </span>
+                    );
+                  })}
+
+                  <span className="font-mono shrink-0 text-[#787384] text-[11px] text-right w-[92px] whitespace-nowrap">
+                    {tiers.length ? `SOLD FROM ${hours(tiers[0])}` : ""}
                   </span>
                 </a>
               );
             })}
           </div>
-        </div>
-      </div>
 
-      <div className="[word-break:break-word] content-stretch flex flex-col gap-[20px] items-start pb-[80px] px-[120px] relative shrink-0 w-full" data-name="execution-strip">
-        <p className="font-mono font-normal leading-[normal] relative shrink-0 text-accent-text text-[12px] uppercase whitespace-nowrap m-0">Consensus Execution Workflow</p>
-        <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="strip-blocks">
-          <Step n="01" title="Fetch Status Page">
-            Anyone makes a claim with an incident id. Every validator fetches that incident from the provider itself.
-          </Step>
-          <Step n="02" title={`Read Rating & Times`}>
-            Validators read when the incident started and ended, and the severity the provider gave it.
-          </Step>
-          <Step n="03" title="Calculate Duration">
-            The duration is plain subtraction, compared with the threshold you bought. No model decides it.
-          </Step>
-          <Step n="04" title="Disburse Payout">
-            A qualifying claim is marked paid within minutes; the GEN reaches your wallet when the transaction finalises, after Studio Next's 30 second finality window.
-          </Step>
+          <p className="font-serif font-normal not-italic relative shrink-0 text-[#787384] text-[13px] max-w-[720px] m-0">
+            {"Each cell is how many incidents the provider itself rated major or critical ran that long or longer. The rarer the length, the larger the multiple sold on it."}{" "}
+            <a href="#/evidence" className="text-[#16141b] underline underline-offset-2">where these came from</a>
+          </p>
         </div>
       </div>
 

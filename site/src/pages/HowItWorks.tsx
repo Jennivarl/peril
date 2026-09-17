@@ -1,4 +1,4 @@
-import { Footer, Header, TxTracker } from "../components/Chrome";
+import { Footer, Header } from "../components/Chrome";
 import { BRADBURY_RPC, bradburyTxUrl, hours, readCovered, short } from "../lib/chain";
 import { usePolled } from "../lib/hooks";
 
@@ -79,10 +79,10 @@ function StageCard({ n, title, children }: { n: string; title: string; children:
   return (
     <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name={`step-card-${n}`}>
       <div className="content-stretch flex items-center justify-between leading-[normal] relative shrink-0 w-full whitespace-nowrap">
-        <p className="font-serif font-extrabold not-italic relative shrink-0 text-[14px] text-white m-0">{title}</p>
+        <p className="font-serif font-extrabold not-italic relative shrink-0 text-[14px] text-[#16141b] m-0">{title}</p>
         <p className="font-mono font-normal relative shrink-0 text-accent-text text-[12px] m-0">[{n}]</p>
       </div>
-      <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">{children}</p>
+      <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#67626f] text-[13px] w-full m-0">{children}</p>
     </div>
   );
 }
@@ -105,16 +105,15 @@ export default function HowItWorks() {
   const agree = round.data?.votes.filter((v) => v === 1).length ?? 0;
 
   return (
-    <div className="bg-[#090a0c] content-stretch flex flex-col items-start relative size-full" data-name="peril-how-it-works">
+    <div className="bg-[#faf8fd] content-stretch flex flex-col items-start min-h-screen mx-auto max-w-[1440px] relative size-full" data-name="peril-how-it-works">
       <Header active="/how" />
-      <TxTracker />
 
       <div className="content-stretch flex flex-col gap-[16px] items-center pb-[40px] pt-[48px] px-[120px] relative shrink-0 w-full" data-name="how-hero">
         <div className="bg-accent-tint border border-accent-line border-solid content-stretch flex items-start px-[12px] py-[4px] relative rounded-[100px] shrink-0">
           <p className="font-mono font-bold leading-[normal] relative shrink-0 text-accent-text text-[11px] whitespace-nowrap m-0">DETERMINISTIC CONSENSUS DESIGN</p>
         </div>
-        <h1 className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[36px] text-center text-white w-[800px] m-0">Deterministic Parametric Settlements</h1>
-        <p className="font-serif font-normal leading-[22px] not-italic relative shrink-0 text-[#9ca3af] text-[15px] text-center w-[750px] m-0">
+        <h1 className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[36px] text-center text-[#16141b] w-[800px] m-0">Deterministic Parametric Settlements</h1>
+        <p className="font-serif font-normal leading-[22px] not-italic relative shrink-0 text-[#67626f] text-[15px] text-center w-[750px] m-0">
           {"Most oracles hand a contract one number and ask it to trust the messenger. On PERIL, every validator reads the provider's own incident record and they agree on four fields; then the contract does subtraction. There is no model in the decision and nobody who can overrule it."}
         </p>
       </div>
@@ -132,45 +131,45 @@ export default function HowItWorks() {
 
       <div className="content-stretch flex gap-[24px] items-start pb-[64px] px-[120px] relative shrink-0 w-full" data-name="anatomy-consensus">
         <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="json-anatomy">
-          <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-white w-full m-0">Downtime API Field Anatomy</p>
-          <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">
+          <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-[#16141b] w-full m-0">Downtime API Field Anatomy</p>
+          <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#67626f] text-[13px] w-full m-0">
             {example.data?.live
               ? `A real incident, read from ${EXAMPLE.host} by your browser just now:`
               : example.data
                 ? "A real incident, from the copy saved for the contract's tests (GitHub could not be reached from this browser):"
                 : `Reading a real incident from ${EXAMPLE.host}…`}
           </p>
-          <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex items-start p-[16px] relative rounded-[6px] shrink-0 w-full">
+          <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex items-start p-[16px] relative rounded-[6px] shrink-0 w-full">
             <pre className="flex-[1_0_0] font-mono font-normal min-w-px relative text-accent-text text-[11px] leading-[16px] whitespace-pre-wrap [overflow-wrap:anywhere] m-0">
               {rec ? JSON.stringify(rec, null, 2) : "{ … }"}
             </pre>
           </div>
-          <div className="content-stretch flex flex-col font-serif font-normal gap-[8px] items-start not-italic relative shrink-0 text-[#9ca3af] text-[12px] w-full leading-[17px]">
-            <p className="m-0">• <b className="text-white">id</b>: must match the id that was asked for, so a host cannot answer with a different incident.</p>
-            <p className="m-0">• <b className="text-white">created_at / resolved_at</b>: subtracted in whole seconds, then rounded down to minutes.</p>
-            <p className="m-0">• <b className="text-white">impact</b>: must be major or critical, as rated by the provider itself.</p>
+          <div className="content-stretch flex flex-col font-serif font-normal gap-[8px] items-start not-italic relative shrink-0 text-[#67626f] text-[12px] w-full leading-[17px]">
+            <p className="m-0">• <b className="text-[#16141b]">id</b>: must match the id that was asked for, so a host cannot answer with a different incident.</p>
+            <p className="m-0">• <b className="text-[#16141b]">created_at / resolved_at</b>: subtracted in whole seconds, then rounded down to minutes.</p>
+            <p className="m-0">• <b className="text-[#16141b]">impact</b>: must be major or critical, as rated by the provider itself.</p>
             <p className="m-0">{"Validators compare only these four fields. The name and update log can change without breaking agreement."}</p>
           </div>
         </div>
 
         <div className="peril-glass border border-solid content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[32px] relative rounded-[12px]" data-name="consensus-visual">
-          <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-white w-full m-0">Validator Convergence Mechanism</p>
-          <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#9ca3af] text-[13px] w-full m-0">
+          <p className="font-serif font-extrabold leading-[normal] not-italic relative shrink-0 text-[18px] text-[#16141b] w-full m-0">Validator Convergence Mechanism</p>
+          <p className="font-serif font-normal leading-[18px] not-italic relative shrink-0 text-[#67626f] text-[13px] w-full m-0">
             {"A real round, from the claim settled on github-w38 against GitHub incident 0rn90wk115q9. Each validator fetched the incident itself and voted on whether the leader's reading matched."}
           </p>
           <div className="content-stretch flex flex-col gap-[10px] items-start leading-[normal] relative shrink-0 text-[12px] w-full whitespace-nowrap">
             {!round.data && (
-              <p className="font-mono text-[#9ca3af] m-0">{round.error ? `Could not read the round from Bradbury: ${round.error}` : "Reading the round from Bradbury…"}</p>
+              <p className="font-mono text-[#67626f] m-0">{round.error ? `Could not read the round from Bradbury: ${round.error}` : "Reading the round from Bradbury…"}</p>
             )}
             {round.data?.validators.map((v, i) => {
               const vote = round.data!.votes[i];
               return (
-                <div key={v} className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex items-center justify-between p-[12px] relative rounded-[6px] shrink-0 w-full">
-                  <p className="font-mono font-normal relative shrink-0 text-white m-0">
+                <div key={v} className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex items-center justify-between p-[12px] relative rounded-[6px] shrink-0 w-full">
+                  <p className="font-mono font-normal relative shrink-0 text-[#16141b] m-0">
                     Validator #{String(i + 1).padStart(2, "0")} ({short(v, 5, 4)})
-                    {i === round.data!.leader && <span className="ml-[8px] text-[#8ab4f8]">LEADER</span>}
+                    {i === round.data!.leader && <span className="ml-[8px] text-[#5b21b6]">LEADER</span>}
                   </p>
-                  <p className={`font-mono font-bold relative shrink-0 m-0 ${vote === 1 ? "text-accent-text" : "text-[#ff3b30]"}`}>
+                  <p className={`font-mono font-bold relative shrink-0 m-0 ${vote === 1 ? "text-accent-text" : "text-[#5b21b6]"}`}>
                     {VOTE[vote] ?? `CODE ${vote}`}
                     {vote === 1 ? " ✓" : ""}
                   </p>
@@ -193,44 +192,44 @@ export default function HowItWorks() {
         <div className="peril-glass border border-solid content-stretch flex flex-col gap-[24px] items-start p-[32px] relative rounded-[12px] shrink-0 w-full" data-name="case-study-box">
           <div className="content-stretch flex items-center justify-between relative shrink-0 w-full gap-[16px]">
             <div className="content-stretch flex flex-col gap-[4px] items-start leading-[normal] relative shrink-0">
-              <p className="font-serif font-extrabold not-italic relative shrink-0 text-[22px] text-white m-0">{rec?.name ?? "…"}</p>
-              <p className="font-mono font-normal relative shrink-0 text-[#9ca3af] text-[12px] m-0">
+              <p className="font-serif font-extrabold not-italic relative shrink-0 text-[22px] text-[#16141b] m-0">{rec?.name ?? "…"}</p>
+              <p className="font-mono font-normal relative shrink-0 text-[#67626f] text-[12px] m-0">
                 Target: {EXAMPLE.host} | Rated: {rec?.impact ?? "…"} | Example threshold: {EXAMPLE.threshold} mins ({hours(EXAMPLE.threshold)})
               </p>
             </div>
             {rec && (
-              <div className={`${minutes >= EXAMPLE.threshold ? "bg-accent-tint border-accent-line text-accent-text" : "bg-[rgba(138,180,248,0.1)] border-[#8ab4f8] text-[#8ab4f8]"} border border-solid content-stretch flex items-start px-[10px] py-[4px] relative rounded-[4px] shrink-0`}>
+              <div className={`${minutes >= EXAMPLE.threshold ? "bg-accent-tint border-accent-line text-accent-text" : "bg-[rgba(124,58,237,0.12)] border-[#6d28d9] text-[#5b21b6]"} border border-solid content-stretch flex items-start px-[10px] py-[4px] relative rounded-[4px] shrink-0`}>
                 <p className="font-mono font-bold leading-[normal] text-[12px] whitespace-nowrap m-0">{minutes >= EXAMPLE.threshold ? "THRESHOLD MET ✓" : "UNDER THRESHOLD"}</p>
               </div>
             )}
           </div>
 
           <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="math-grid">
-            <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[10px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name="arithmetic-card">
-              <p className="font-mono font-normal leading-[normal] relative shrink-0 text-[#9ca3af] text-[11px] whitespace-nowrap m-0">DOWNTIME ARITHMETIC</p>
-              <div className="content-stretch flex flex-col font-serif font-normal gap-[4px] items-start not-italic relative shrink-0 text-[14px] text-white w-full">
+            <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[10px] items-start min-w-px p-[20px] relative rounded-[8px]" data-name="arithmetic-card">
+              <p className="font-mono font-normal leading-[normal] relative shrink-0 text-[#67626f] text-[11px] whitespace-nowrap m-0">DOWNTIME ARITHMETIC</p>
+              <div className="content-stretch flex flex-col font-serif font-normal gap-[4px] items-start not-italic relative shrink-0 text-[14px] text-[#16141b] w-full">
                 <p className="leading-[normal] m-0">• Outage start: {rec ? `${rec.created_at.slice(0, 10)} ${utc(rec.created_at)} UTC` : "…"}</p>
                 <p className="leading-[normal] m-0">• Outage end: {rec?.resolved_at ? `${rec.resolved_at.slice(0, 10)} ${utc(rec.resolved_at)} UTC` : "…"}</p>
                 <p className="leading-[normal] m-0">• Subtract: <span className="font-mono text-accent-text">{rec ? `${h} h ${m} m ${s} s` : "…"}</span></p>
                 <p className="leading-[normal] m-0">• Round down to whole minutes</p>
               </div>
-              <div className="bg-[#1e222a] h-px relative shrink-0 w-full" />
+              <div className="bg-[#e3ddf0] h-px relative shrink-0 w-full" />
               <p className="font-mono font-bold leading-[normal] relative shrink-0 text-accent-text text-[16px] whitespace-nowrap m-0">Total = {rec ? minutes : "…"} Minutes</p>
             </div>
 
-            <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex flex-[1_0_0] flex-col font-normal gap-[10px] items-start leading-[normal] min-w-px p-[20px] relative rounded-[8px] whitespace-nowrap" data-name="pass-fail-card">
-              <p className="font-mono relative shrink-0 text-[#9ca3af] text-[11px] m-0">{"TIER EVALUATION (GITHUB'S LIVE PRICE LIST)"}</p>
+            <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex flex-[1_0_0] flex-col font-normal gap-[10px] items-start leading-[normal] min-w-px p-[20px] relative rounded-[8px] whitespace-nowrap" data-name="pass-fail-card">
+              <p className="font-mono relative shrink-0 text-[#67626f] text-[11px] m-0">{"TIER EVALUATION (GITHUB'S LIVE PRICE LIST)"}</p>
               <div className="content-stretch flex flex-col gap-[6px] items-start relative shrink-0 text-[13px] w-full">
-                {!github && <p className="font-mono text-[#9ca3af] m-0">{covers.error ? "Could not read the price list." : "Reading the price list…"}</p>}
+                {!github && <p className="font-mono text-[#67626f] m-0">{covers.error ? "Could not read the price list." : "Reading the price list…"}</p>}
                 {rec &&
                   tiers.map((t) => {
                     const pass = minutes >= t;
                     return (
                       <div key={t} className="content-stretch flex items-start justify-between relative shrink-0 w-full gap-[12px]">
-                        <p className={`font-serif not-italic relative shrink-0 m-0 ${pass ? "text-white" : "text-[#4b5563]"}`}>
+                        <p className={`font-serif not-italic relative shrink-0 m-0 ${pass ? "text-[#16141b]" : "text-[#787384]"}`}>
                           {hours(t)} tier ({github!.multiples[String(t)]}x){t === EXAMPLE.threshold ? " - Example" : ""}
                         </p>
-                        <p className={`font-mono relative shrink-0 m-0 ${pass ? "text-accent-text" : "text-[#ff3b30]"}`}>
+                        <p className={`font-mono relative shrink-0 m-0 ${pass ? "text-accent-text" : "text-[#5b21b6]"}`}>
                           {pass ? `CLEARED (${minutes}m ≥ ${t}m)` : `FAILED (${minutes}m < ${t}m)`}
                         </p>
                       </div>
@@ -240,8 +239,8 @@ export default function HowItWorks() {
             </div>
           </div>
 
-          <div className="bg-[#14171f] border border-[#1e222a] border-solid content-stretch flex items-start p-[20px] relative rounded-[6px] shrink-0 w-full" data-name="payout-reasoning">
-            <p className="flex-[1_0_0] font-mono font-normal leading-[20px] min-w-px relative text-[#9ca3af] text-[13px] m-0">
+          <div className="bg-[#f1edfa] border border-[#e3ddf0] border-solid content-stretch flex items-start p-[20px] relative rounded-[6px] shrink-0 w-full" data-name="payout-reasoning">
+            <p className="flex-[1_0_0] font-mono font-normal leading-[20px] min-w-px relative text-[#67626f] text-[13px] m-0">
               {rec
                 ? `The contract's verdict for a ${EXAMPLE.threshold} minute policy would read: "${minutes} minutes ${minutes >= EXAMPLE.threshold ? "meets" : "is under"} the ${EXAMPLE.threshold} minute threshold". This outage happened on ${rec.created_at.slice(0, 10)}, before the live policies existed, so nothing was paid on it; it is the worked example the contract's own tests use.`
                 : "…"}

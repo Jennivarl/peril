@@ -144,25 +144,80 @@ const FRESH_MS: Record<string, number> = { covered: Infinity };
 const DEFAULT_FRESH_MS = 15000;
 const reads = new Map<string, { at: number; value: Promise<unknown> }>();
 
+/**
+ * Studio Next caps requests twice: 30 a minute and 500 an hour, and answers
+ * past either with "Rate limit exceeded". Reloading a page would otherwise
+ * spend the whole budget again, so the last good answer for each call is kept
+ * in localStorage and reused on the next load. It is a cache of what the
+ * chain said, never a substitute for asking.
+ */
+const STORE_KEY = "peril:reads";
+const STORE_FRESH_MS = 120000;
+
+type Stored = { at: number; value: unknown };
+
+function storedReads(): Record<string, Stored> {
+  try {
+    return JSON.parse(localStorage.getItem(STORE_KEY) ?? "{}") as Record<string, Stored>;
+  } catch {
+    return {};
+  }
+}
+
+function remember(key: string, value: unknown): void {
+  try {
+    const all = storedReads();
+    all[key] = { at: Date.now(), value };
+    localStorage.setItem(STORE_KEY, JSON.stringify(all));
+  } catch {
+    // Storage can be blocked. The site then simply asks the chain again.
+  }
+}
+
+function recall<T>(key: string, maxAgeMs: number): T | undefined {
+  const hit = storedReads()[key];
+  if (hit && Date.now() - hit.at < maxAgeMs) return hit.value as T;
+  return undefined;
+}
+
 async function view<T>(functionName: string, args: unknown[] = []): Promise<T> {
   const key = `${functionName}:${JSON.stringify(args)}`;
   const hit = reads.get(key);
   if (hit && Date.now() - hit.at < (FRESH_MS[functionName] ?? DEFAULT_FRESH_MS)) {
     return hit.value as Promise<T>;
   }
+
+  // A fresh page load reuses what this tab already read, rather than spending
+  // the hourly budget on figures it fetched a moment ago.
+  const kept = recall<T>(key, functionName === "covered" ? 3600000 : STORE_FRESH_MS);
+  if (kept !== undefined) {
+    const ready = Promise.resolve(kept);
+    reads.set(key, { at: Date.now(), value: ready });
+    return ready;
+  }
+
   const value = (async () => {
-    const c = await reader();
-    const raw = await c.readContract({
-      address: PERIL as `0x${string}`,
-      functionName,
-      args,
-    });
-    return plain(raw) as T;
+    try {
+      const c = await reader();
+      const raw = await c.readContract({
+        address: PERIL as `0x${string}`,
+        functionName,
+        args,
+      });
+      const flat = plain(raw) as T;
+      remember(key, flat);
+      return flat;
+    } catch (e) {
+      // When the chain refuses (a rate limit, a blip), serve the last good
+      // answer rather than blanking the page. Only a call that has never
+      // succeeded surfaces the error.
+      const stale = recall<T>(key, 86400000);
+      if (stale !== undefined) return stale;
+      reads.delete(key);
+      throw e;
+    }
   })();
   reads.set(key, { at: Date.now(), value });
-  value.catch(() => {
-    if (reads.get(key)?.value === value) reads.delete(key);
-  });
   return value;
 }
 
@@ -227,6 +282,42 @@ export async function readBalance(address: string): Promise<string> {
   const body = (await res.json()) as { result?: string };
   if (!body.result) throw new Error("no balance returned");
   return BigInt(body.result).toString();
+}
+
+// ------------------------------------------------------------------
+// what a provider says about itself
+// ------------------------------------------------------------------
+
+export type ProviderStatus = { indicator: string; description: string };
+
+/**
+ * The provider's own summary of its service right now, from its status page.
+ *
+ * This is their report, not PERIL watching anything: the contract reads an
+ * incident only when a claim names one. It is shown so a visitor can see the
+ * same source the validators would read.
+ */
+export async function readProviderStatus(host: string): Promise<ProviderStatus> {
+  const res = await fetch(`https://${host}/api/v2/status.json`);
+  if (!res.ok) throw new Error(`${host} returned ${res.status}`);
+  const body = (await res.json()) as { status?: Partial<ProviderStatus> };
+  if (!body.status?.indicator) throw new Error(`${host} sent no status`);
+  return { indicator: body.status.indicator, description: body.status.description ?? "" };
+}
+
+/** Every host at once. A provider that will not answer simply has no badge. */
+export async function readProviderStatuses(hosts: string[]): Promise<Record<string, ProviderStatus>> {
+  const out: Record<string, ProviderStatus> = {};
+  await Promise.all(
+    hosts.map(async (host) => {
+      try {
+        out[host] = await readProviderStatus(host);
+      } catch {
+        // Left out on purpose: no badge is better than a guessed one.
+      }
+    }),
+  );
+  return out;
 }
 
 // ------------------------------------------------------------------

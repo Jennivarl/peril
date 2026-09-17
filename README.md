@@ -213,10 +213,12 @@ against the chain, not against the contract's own report:
 | Buy Discord cover, 2 h, 16 to 23 Sept, 0.5 GEN | [`0x71446ef2…`](https://explorer-studio-dev.genlayer.com/tx/0x71446ef24e26364a378757af135dc75919befdacd46b30054815ecf41afdedc0) | pool 6, locked 2, free 4 |
 | Withdraw 0.1 shares | [`0x699fbda5…`](https://explorer-studio-dev.genlayer.com/tx/0x699fbda5317e2a5c765d8ff1cd84ea9e0b90ddf3612d783b060688db8c6bd35b) | contract balance fell from 6.00 to exactly 5.92 GEN |
 | Settle GitHub cover against real incident `0rn90wk115q9` | [`0x1e206da5…`](https://explorer-studio-dev.genlayer.com/tx/0x1e206da59084f08d50c465254b568490320c20e0ced08883e69c15e5b212f306) | validators fetched GitHub's record and agreed; refused as `outside_window` (it began 13 Sept), policy still open, no GEN moved |
+| **Settle the same cover against real incident `nlxnbqnkdzdl`** | [`0x0299eae1…`](https://explorer-studio-dev.genlayer.com/tx/0x0299eae1a6690ea1f513aa712e5f65034bb0279eacd962da0ff52574159fc433) | **paid**: GitHub rated it major and published 07:20 to 17:48 UTC on 16 Sept, 627 minutes against the 240 bought. The contract's balance fell from 5.92 to exactly 4.92 GEN |
 
-A paying claim needs a real GitHub or Discord outage inside 16 to 23
-September that clears its threshold. None had happened when this was
-written.
+The refusal and the payment are the same policy, the same contract and the
+same four fields, three days apart: one outage began outside the window and
+was refused, the next began inside it and paid. Neither needed anyone's
+permission.
 
 ## Trying it
 

@@ -72,3 +72,16 @@ export function priceTier(seen: number) {
 
 export const serviceName = (cover: string) => SERVICE_NAMES[cover] ?? cover;
 
+
+/**
+ * The registry as deployed, used only so the landing board can draw itself
+ * when the chain refuses a read. The contract remains the authority: when
+ * covered() answers, its list replaces this one.
+ */
+export const FALLBACK_SERVICES: { cover: string; host: string; cheapest: number; multiple: number }[] = [
+  { cover: "discord", host: "discordstatus.com", cheapest: 120, multiple: 2 },
+  { cover: "github", host: "www.githubstatus.com", cheapest: 240, multiple: 2 },
+  { cover: "netlify", host: "www.netlifystatus.com", cheapest: 60, multiple: 2 },
+  { cover: "npm", host: "status.npmjs.org", cheapest: 60, multiple: 6 },
+  { cover: "vercel", host: "www.vercel-status.com", cheapest: 120, multiple: 2 },
+];
